@@ -1,0 +1,37 @@
+# ============================================================================
+# .vercelignore — files excluded from the Vercel deployment upload
+# This is a Next.js frontend deployment ONLY. The NestJS backend in server/
+# is hosted separately (NestJS is not compatible with Vercel serverless).
+# ============================================================================
+
+# Backend (deployed separately; not part of this frontend build)
+server/
+
+# Environment files — NEVER ship any .env to Vercel.
+# Production env vars live in Vercel's dashboard, not the git/upload tree.
+.env
+.env.*
+!.env.example
+
+# Dev/docs artifacts that don't need to be on the edge
+docs/
+scratchpad/
+*.md
+!README.md
+
+# Local/editor junk
+.DS_Store
+Thumbs.db
+
+# Build caches / local output (also in .gitignore, but belt+suspenders)
+.next/
+out/
+node_modules/
+coverage/
+*.tsbuildinfo
+
+# Prisma artifacts (belong to the backend)
+prisma/
+
+# Git-local
+.git/
