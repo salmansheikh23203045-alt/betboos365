@@ -1,0 +1,28 @@
+# Node/TS artifacts
+node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# Local env files — NEVER ship any .env into the image.
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# OS + editor
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docs (not needed at runtime)
+docs
+
+# Git metadata
+.git
+.gitignore

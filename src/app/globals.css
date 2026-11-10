@@ -1,0 +1,424 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   TCL11 DESIGN TOKENS
+   Values are estimated from the reference image (see docs/UI_REFERENCE_ANALYSIS.md §4).
+   Verify with an eyedropper before final sign-off.
+   Tailwind v4 @theme emits every token as a CSS variable (--color-tcl-red, ...)
+   and as a utility (bg-tcl-red, text-tcl-gold, ...).
+   ========================================================================== */
+@theme {
+  /* ---- Color: backgrounds ---- */
+  --color-tcl-black: #0a0a0a;      /* primary background */
+  --color-tcl-charcoal: #161616;   /* secondary background */
+  --color-tcl-surface: #1a0808;    /* card fill (red-black) */
+  --color-tcl-surface-2: #241010;  /* table rows, inactive tabs */
+
+  /* ---- Color: accents ---- */
+  --color-tcl-red: #e10f0f;        /* primary accent: borders, Sign Up */
+  --color-tcl-red-bright: #ff2a2a; /* hover / highlight */
+  --color-tcl-red-deep: #7a0000;   /* gradient base, glow core */
+  --color-tcl-gold: #ffc21a;       /* secondary accent: CTAs, active */
+  --color-tcl-gold-light: #ffe27a; /* gradient highlight */
+  --color-tcl-gold-deep: #c98a00;  /* gradient base */
+
+  /* ---- Color: text and status ---- */
+  --color-tcl-white: #ffffff;
+  --color-tcl-muted: #9a9a9a;      /* muted gray text */
+  --color-tcl-success: #1f9d3a;
+  --color-tcl-border-muted: #3a1414; /* subtle dividers inside cards */
+
+  /* ---- Typography families ---- */
+  --font-display: var(--font-anton), "Impact", "Arial Narrow Bold", sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* ---- Typography scale (responsive via clamp) ---- */
+  --text-display-hero: clamp(2.5rem, 1.6rem + 3.4vw, 4rem);
+  --text-display-hero--line-height: 0.95;
+  --text-display-xl: clamp(2rem, 1.4rem + 2.2vw, 2.75rem);
+  --text-display-xl--line-height: 1;
+  --text-heading-lg: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --text-heading-lg--line-height: 1.2;
+  --text-heading-md: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --text-heading-md--line-height: 1.25;
+  --text-heading-sm: 0.875rem;
+  --text-heading-sm--line-height: 1.3;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-label: 0.6875rem;          /* nav / table headers: 11px uppercase */
+  --text-label--line-height: 1.2;
+  --text-button: 0.8125rem;         /* 13px bold uppercase */
+  --text-button--line-height: 1.1;
+
+  /* ---- Radius ---- */
+  --radius-tile: 0.5rem;   /* 8px: game tiles, icon tiles */
+  --radius-card: 0.75rem;  /* 12px: panels */
+  --radius-pill: 9999px;
+
+  /* ---- Glow / shadow tokens ---- */
+  --shadow-glow-red: 0 0 14px -2px rgb(225 15 15 / 0.6);
+  --shadow-glow-red-soft: 0 0 10px -3px rgb(225 15 15 / 0.45);
+  --shadow-glow-gold: 0 0 12px -2px rgb(255 194 26 / 0.55);
+
+  /* ---- Gradients ---- */
+  --gradient-gold: linear-gradient(180deg, #ffe27a 0%, #ffc21a 45%, #c98a00 100%);
+  --gradient-red: linear-gradient(180deg, #ff2a2a 0%, #e10f0f 50%, #7a0000 100%);
+  --gradient-card: linear-gradient(180deg, #241010 0%, #140606 100%);
+  --gradient-fire: radial-gradient(circle at 70% 40%, rgb(225 15 15 / 0.55) 0%, rgb(122 0 0 / 0.25) 40%, transparent 70%);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-tcl-black);
+    color: var(--color-tcl-white);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-tcl-gold);
+    color: var(--color-tcl-black);
+  }
+}
+
+/* ==========================================================================
+   EFFECT UTILITIES
+   Keep blur small (≤ 14px) and animate only transform/opacity.
+   ========================================================================== */
+
+/* Red neon border: 1px solid red + thin inner line + soft outer glow */
+@utility neon-border-red {
+  border: 1px solid var(--color-tcl-red);
+  box-shadow:
+    inset 0 0 0 1px rgb(225 15 15 / 0.25),
+    var(--shadow-glow-red);
+}
+
+/* Gold neon border */
+@utility neon-border-gold {
+  border: 1px solid var(--color-tcl-gold);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 194 26 / 0.2),
+    var(--shadow-glow-gold);
+}
+
+/* Glow only (no border) */
+@utility glow-red {
+  box-shadow: var(--shadow-glow-red);
+}
+@utility glow-red-soft {
+  box-shadow: var(--shadow-glow-red-soft);
+}
+@utility glow-gold {
+  box-shadow: var(--shadow-glow-gold);
+}
+
+/* Gradients */
+@utility bg-gold-gradient {
+  background-image: var(--gradient-gold);
+}
+@utility bg-red-gradient {
+  background-image: var(--gradient-red);
+}
+@utility bg-card-dark {
+  background-image: var(--gradient-card);
+}
+@utility bg-fire-glow {
+  background-image: var(--gradient-fire);
+}
+
+/* Red divider with a soft glow, used in the mobile footer */
+@utility footer-glow-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-tcl-red) 50%, transparent);
+  box-shadow: 0 0 8px 0 rgb(225 15 15 / 0.7);
+}
+
+/* Mobile game tile frame: bright red edge, outer neon glow, and an inner fire glow drawn above the artwork.
+   Needs position: relative on the element; labels sit above the glow with z-10. */
+@utility tile-neon {
+  isolation: isolate;
+  border: 1.5px solid #ff3326;
+  background: radial-gradient(circle at 50% 40%, #b31212 0%, #4a0404 58%, #160202 100%);
+  box-shadow: 0 0 9px -1px rgb(255 51 38 / 0.75);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 10px rgb(255 70 30 / 0.55),
+      inset 0 0 0 1px rgb(255 200 150 / 0.18);
+    pointer-events: none;
+  }
+}
+
+/* Gentle float for the hero shortcut icons (transform only) */
+@keyframes shortcut-icon-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.shortcut-icon-float {
+  animation: shortcut-icon-float 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shortcut-icon-float {
+    animation: none;
+  }
+}
+
+/* Gold gradient text (titles like "Sports" / "LIVE") */
+@utility text-gold-gradient {
+  background-image: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Dark outline for display text over bright art */
+@utility text-outline-dark {
+  text-shadow:
+    0 2px 0 #000,
+    0 -1px 0 #000,
+    1px 0 0 #000,
+    -1px 0 0 #000,
+    0 0 10px rgb(0 0 0 / 0.6);
+}
+
+/* Hover lighting: a single sheen that slides across on hover (transform only) */
+@utility hover-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.22) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+/* Hover intensify: brighter red glow on hover */
+@utility hover-glow-red {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    box-shadow:
+      inset 0 0 0 1px rgb(225 15 15 / 0.4),
+      0 0 18px -2px rgb(255 42 42 / 0.75);
+  }
+}
+
+/* Gold pill button base gradient + press feedback */
+@utility btn-gold {
+  background-image: var(--gradient-gold);
+  color: var(--color-tcl-black);
+  box-shadow: var(--shadow-glow-gold);
+  transition: transform 0.15s ease, filter 0.2s ease;
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Red button base gradient + press feedback */
+@utility btn-red {
+  background-image: var(--gradient-red);
+  color: var(--color-tcl-white);
+  box-shadow: var(--shadow-glow-red);
+  transition: transform 0.15s ease, filter 0.2s ease;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Reduced motion: disable sheen and transitions for users who opt out */
+@media (prefers-reduced-motion: reduce) {
+  .hover-sheen::after,
+  .btn-gold,
+  .btn-red {
+    transition: none;
+  }
+}
+
+/* Hide scrollbars on horizontal carousels without removing scrolling */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   STEP 06 — INTERACTION & ANIMATION UTILITIES
+   ========================================================================== */
+
+/* Smooth scrolling (respects reduced-motion below) */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  input,
+  textarea,
+  select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow: 0 0 0 1px rgb(255 194 26 / 0.3), 0 0 8px -2px rgb(255 194 26 / 0.25);
+  }
+}
+
+/* --- Page entrance --- */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@utility animate-fade-in-up {
+  animation: fade-in-up 0.45s ease-out both;
+}
+
+/* --- Tab panel entrance --- */
+@keyframes tab-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@utility animate-tab-fade {
+  animation: tab-fade 0.25s ease-out both;
+}
+
+/* --- Staggered grid entrance: set --stagger-i on each child --- */
+@keyframes stagger-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+@utility animate-stagger {
+  animation: stagger-up 0.4s ease-out both;
+  animation-delay: calc(var(--stagger-i, 0) * 50ms);
+}
+
+/* --- Scrolling marquee --- */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
+}
+
+/* --- Accordion reveal (CSS grid-rows) --- */
+.accordion-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+}
+
+.accordion-body[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.accordion-body > div {
+  overflow: hidden;
+}
+
+/* --- Mobile nav tap feedback --- */
+@utility tap-feedback {
+  transition: transform 0.1s ease;
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+/* --- Pulsing online dot --- */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@utility animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* --- Reduced motion: disable all Step 06 entrance/motion animations --- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-in-up,
+  .animate-tab-fade,
+  .animate-stagger {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+
+  .marquee-track {
+    animation: none;
+  }
+
+  .accordion-body {
+    transition: none;
+  }
+
+  .tap-feedback:active {
+    transform: none;
+  }
+}
