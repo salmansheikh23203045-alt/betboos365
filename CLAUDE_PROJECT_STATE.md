@@ -1,6 +1,42 @@
 # CLAUDE_PROJECT_STATE — TCL11 Website
 
-**Last updated:** 2026-11-11 (login "backend unreachable" fix — root-caused + friendly Bangla errors)
+**Last updated:** 2026-11-11 (Step 13 committed; Step 14 production deploy in progress — blocked on 2 browser-only signups)
+
+---
+
+### Step 14 — Production deployment (2026-11-11, IN PROGRESS — pivoted to free stack, blocked on 2 browser signups)
+- **Architecture pivot (user-approved 2026-11-11 ~16:05):** Railway Hobby ($5/mo) was pre-approved then superseded by a user directive to use only free providers. Research (WebSearch, 2026-11-11) confirmed:
+  - **Render** — free Web Service tier still exists (512 MB RAM, 0.1 CPU, sleeps after 15 min idle with ~60s cold start, 750 instance-hours/month per workspace, Docker supported). Signup via GitHub OAuth — no card required for the free plan. Chosen for backend.
+  - **Neon** — free Postgres tier (0.5 GB storage, project `tcl11-prod`, Postgres 17). Signup via Google OAuth, no card required. Chosen for DB.
+  - **Vercel** — already linked (unchanged); free Hobby plan covers the Next.js frontend.
+  - **Koyeb** — rejected: Feb 2026 change requires a $29 pre-authorization card hold.
+  - **Railway** — rejected per user: Hobby $5/mo not free.
+- **Email in use for NEW signups:** `salman23203045@hotmail.com` (switched from `salmanrorvi72@gmail.com` mid-session). Any resources already created under another identity must be reused, not duplicated.
+- **Already-connected accounts (DO NOT re-create):**
+  - **Vercel** — logged in as `salman8809`, project `tcl11-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`, team `team_1Uz2EyzBGAlyXwVYmBzIiFNw`), CLI 65.12.1, production env currently empty. This is the target project — the deploy will add `BACKEND_API_URL` and `vercel --prod` here.
+  - **PostgreSQL 17 local** — running on `localhost:5432` for dev; irrelevant to production.
+  - **NestJS backend local** — rebuildable from `server/dist/` and bootable with `node dist/main.js` for local testing.
+- **Autonomous prep completed this session:**
+  - Railway CLI 5.71.0 installed globally (kept — may still be useful as a fallback).
+  - JWT_SECRET generated (96 hex chars, `crypto.randomBytes(48)`) and stored in `server/.env.production` (gitignored by `server/.gitignore`'s `.env.*` pattern — verified with `git check-ignore -v`).
+  - `server/.env.production` created with every non-secret var pre-filled; DATABASE_URL and DIRECT_URL left blank as the single local-disk place for the Neon strings.
+  - **`render.yaml` Blueprint committed** at repo root. Declares the `tcl11-backend` free Web Service in Singapore, points at `server/Dockerfile`, injects every non-secret env var, marks DATABASE_URL / DIRECT_URL / JWT_SECRET as `sync: false` so they only live in Render's UI, never in the repo. Health-check path `/api/v1/promotions`.
+  - Dockerfile unchanged (`prisma migrate deploy && node dist/main.js` on boot) — Render consumes it as-is.
+  - All Step 13 work (User Center, onboarding, nav replacement, login UX) committed as `470b65c` — 73 Next.js routes building cleanly.
+- **Blocked on user action (3 browser OAuth signups, ~10 min total, zero cards):**
+  1. **GitHub repo** — the code needs to live on GitHub for Render to pull from. User runs `gh auth login` on their machine ONCE (device-code flow, 30s), then I create the repo and push commit `470b65c`.
+  2. **Neon signup** — https://console.neon.tech/signup → **Sign in with Google** with `salman23203045@hotmail.com` (bypasses email verification). Create project `tcl11-prod`, Postgres 17, Singapore. Paste pooled URL into `server/.env.production` after `DATABASE_URL=` with `&pgbouncer=true&connect_timeout=15` appended, and direct URL after `DIRECT_URL=`.
+  3. **Render signup** — https://render.com/register → **Sign up with GitHub** (same account used in step 1). Click **New → Blueprint**, pick the `tcl11` repo — Render reads `render.yaml` and provisions the service. Paste `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` into the service's Environment tab (values are in `server/.env.production` locally).
+- **Remaining fully-autonomous steps (triggered by user saying "all three done"):**
+  - Verify blockers: `gh auth status`, test SSH push access, confirm Neon URLs in `.env.production`, confirm Render service responding.
+  - Push commit `470b65c` to the new GitHub repo.
+  - Wait for Render auto-build (Blueprint triggers on first push).
+  - `curl` Render URL → verify `GET /api/v1/promotions` returns 200.
+  - One-off: run `prisma db seed` against the Neon direct URL from local machine using `seed.prod.ts` (content-only; no default admin password lands in DB).
+  - `vercel env add BACKEND_API_URL production` with the Render URL.
+  - `vercel --prod` to push commit `470b65c` frontend.
+  - Live smoke test: register → login via BFF → `/api/auth/me` → wallet balance → deposit submit (PENDING) → admin login → logout.
+  - Replace this "IN PROGRESS" block with actual URLs, deployment IDs, and raw test output.
 
 ---
 

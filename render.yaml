@@ -1,0 +1,55 @@
+# Render Blueprint — declarative deployment config for TCL11.
+# Render reads this at the repo root when you create a Blueprint from a
+# GitHub repo. It provisions the backend web service from server/Dockerfile.
+# Database is Neon (external), not Render Postgres — Render's free Postgres
+# deletes after 30 days and that would nuke real production data.
+
+services:
+  - type: web
+    name: tcl11-backend
+    runtime: docker
+    plan: free            # Free: 512 MB RAM, 0.1 CPU, sleeps after 15 min idle
+    region: singapore     # Match Neon region for low DB latency
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/promotions
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PREFIX
+        value: api/v1
+      - key: JWT_EXPIRATION
+        value: 15m
+      - key: JWT_REFRESH_EXPIRATION
+        value: 7d
+      - key: THROTTLE_TTL
+        value: "60"
+      - key: THROTTLE_LIMIT
+        value: "100"
+      - key: SPORTS_API_PROVIDER
+        value: mock
+      - key: LOG_LEVEL
+        value: info
+      - key: WALLET_CURRENCY
+        value: BDT
+      - key: DEPOSIT_AGENT_NUMBER
+        value: "01956869852"
+      - key: DEPOSIT_MIN
+        value: "100"
+      - key: DEPOSIT_MAX
+        value: "100000"
+      - key: WITHDRAWAL_MIN
+        value: "500"
+      - key: WITHDRAWAL_MAX
+        value: "50000"
+      - key: CORS_ORIGINS
+        value: https://tcl11-website.vercel.app
+      # Secrets — set in Render dashboard → Service → Environment, never in this file:
+      - key: DATABASE_URL
+        sync: false         # Neon pooled URL (?sslmode=require&pgbouncer=true&connect_timeout=15)
+      - key: DIRECT_URL
+        sync: false         # Neon direct URL (?sslmode=require)
+      - key: JWT_SECRET
+        sync: false         # Generated locally; paste once in Render UI
