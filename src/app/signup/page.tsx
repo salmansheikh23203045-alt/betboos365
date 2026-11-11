@@ -69,6 +69,14 @@ export default function SignupPage() {
         return;
       }
       await refresh();
+      // Flag read by <OnboardingOrchestrator> at the root to fire the
+      // 3-popup post-signup flow exactly once. Only /signup writes this —
+      // /login never does, so logging back in doesn't replay onboarding.
+      try {
+        window.localStorage.setItem("tcl_show_onboarding", "1");
+      } catch {
+        /* ignore storage failures (private mode / disabled); orchestrator will simply not fire */
+      }
       startTransition(() => {
         router.replace("/profile");
         router.refresh();

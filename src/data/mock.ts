@@ -15,13 +15,15 @@ import { BN } from "@/i18n/bn";
 
 export const NAV_ITEMS: NavItem[] = [
   { id: "home", label: BN.nav.home, href: "/", icon: "House" },
-  { id: "casino", label: BN.nav.casino, href: "/casino", icon: "Dices" },
+  { id: "hot-games", label: BN.nav.hotGames, href: "/hot-games", icon: "Flame" },
+  { id: "featured-games", label: BN.nav.featuredGames, href: "/featured-games", icon: "Star" },
   { id: "slots", label: BN.nav.slots, href: "/slots", icon: "Gift" },
-  { id: "live-casino", label: BN.nav.liveCasino, href: "/live-casino", icon: "Tv" },
+  { id: "fishing", label: BN.nav.fishing, href: "/fishing", icon: "Zap" },
+  { id: "live-casino", label: BN.nav.live, href: "/live-casino", icon: "Tv" },
   { id: "sports", label: BN.nav.sports, href: "/sports", icon: "Trophy" },
-  { id: "fishing", label: BN.nav.fishing, href: "/fishing", icon: "Flame" },
   { id: "esports", label: BN.nav.esports, href: "/esports", icon: "Gamepad2" },
-  { id: "promotion", label: BN.nav.promotion, href: "/promotion", icon: "Gift" },
+  { id: "poker", label: BN.nav.poker, href: "/poker", icon: "Dices" },
+  { id: "lottery", label: BN.nav.lottery, href: "/lottery", icon: "Target" },
 ];
 
 export const MOBILE_TABS: NavItem[] = [

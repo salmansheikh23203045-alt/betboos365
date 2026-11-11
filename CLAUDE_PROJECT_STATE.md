@@ -1,6 +1,30 @@
 # CLAUDE_PROJECT_STATE — TCL11 Website
 
-**Last updated:** 2026-11-11 (dev-server resilience fix + Step 11 landed)
+**Last updated:** 2026-11-11 (login "backend unreachable" fix — root-caused + friendly Bangla errors)
+
+---
+
+### Login "Backend unreachable: fetch failed" fix (2026-11-11)
+- **Symptom reported by user:** login page displays `Backend unreachable: fetch failed` instead of logging in.
+- **Root cause (not a code bug):** the NestJS backend process on `localhost:3200` was **not running**. `src/lib/api.ts::backendFetch()` already catches connection failures (ECONNREFUSED / ENOTFOUND / aborted / DNS) and returns a synthetic `503` with `{"message":"Backend unreachable: <detail>"}` — that message was being surfaced verbatim by `src/app/login/page.tsx` as the user-facing error. Root-cause confirmed by `curl -s -o NUL -w "%{http_code}" http://localhost:3200/api/v1/promotions` → connection refused (exit 7) before restart; `200` after. `.env.local` was correct (`BACKEND_API_URL=http://localhost:3200/api/v1`), the Next.js BFF code was correct, the backend build artifact `server/dist/main.js` existed.
+- **Fix part A — run the backend** (`cd server && node dist/main.js`): Prisma reconnects, 35+ routes mapped, health probe (`GET /api/v1/promotions`) returns 200. No secrets rotated, no env changes.
+- **Fix part B — improve login error UX** (`src/app/login/page.tsx`): added `friendlyLoginError(status, raw)` that translates the 3 real failure modes into clear Bangla and **never** leaks "fetch failed" or "Backend unreachable" to users:
+  - `503` or any `fetch failed|ECONNREFUSED|ENOTFOUND` text → "সার্ভারে পৌঁছানো যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।"
+  - `401` → "ভুল ইউজারনেম বা পাসওয়ার্ড।" (invalid credentials, distinct from backend down)
+  - `≥500` → "সার্ভার সমস্যায় রয়েছে। পরে আবার চেষ্টা করুন।"
+  - validation-shaped 400/409 strings still surface if they look user-friendly; otherwise generic Bangla fallback.
+  - Client-side validation messages ("ইউজারনেম এবং পাসওয়ার্ড দিন।" etc.) also translated.
+  - No auth logic changed: BFF still calls `/auth/login`, HttpOnly cookies `tcl_at`+`tcl_rt` are still set the same way, refresh rotation still works.
+- **End-to-end verification against the restarted backend (2026-11-11):**
+  - Backend health: `GET /api/v1/promotions` → 200.
+  - Direct backend `POST /auth/login {demo, Test1234}` → 201 with JWT access + refresh tokens + user object.
+  - Direct backend `POST /auth/login {demo, WRONG}` → 401 `{"message":"Invalid username or password"}`.
+  - BFF `POST /api/auth/login {demo, Test1234}` → 200, `Set-Cookie: tcl_at` and `tcl_rt` both `HttpOnly`, response body `{user:{id,username,email,firstName,lastName,roles}}` — **no tokens in the body**.
+  - BFF `GET /api/auth/me` with the cookie jar → 200, user returned (hits the authed backend transparently).
+  - BFF `POST /api/auth/login {demo, WRONG}` → 401 `{"message":"Invalid username or password"}` (surfaced through `friendlyLoginError` as the Bangla "ভুল ইউজারনেম বা পাসওয়ার্ড।").
+  - BFF `POST /api/auth/logout` with cookies → 200 `{"ok":true}`.
+  - Frontend `tsc --noEmit`: 0 errors. `next build`: all 73 routes compile cleanly (unchanged route count — the fix is one file edit).
+- **Production implication:** on Vercel, `BACKEND_API_URL` must be set to the live NestJS URL (Railway, after Step-10-era deployment prep). `friendlyLoginError` works there identically — a Railway outage will show the same Bangla "server unreachable" line instead of leaking internals.
 
 ---
 

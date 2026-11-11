@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { MOBILE_TABS, NAV_ITEMS } from "@/data/mock";
 import { PromoMarquee } from "@/components/layout/PromoMarquee";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrchestrator";
 import { getSession } from "@/lib/session";
 
 /* Display face: heavy condensed sans. Closest free match to the reference hero/section titles.
@@ -64,6 +65,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <Footer />
             <MobileBottomNavigation items={MOBILE_TABS} />
           </div>
+          <OnboardingOrchestrator />
         </AuthProvider>
       </body>
     </html>

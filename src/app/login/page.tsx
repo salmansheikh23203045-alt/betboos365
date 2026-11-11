@@ -9,6 +9,25 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { ICONS } from "@/lib/icons";
 import { useAuth } from "@/components/auth/AuthProvider";
 
+function friendlyLoginError(status: number, raw: string | undefined): string {
+  // Backend process unreachable (our BFF synthesises 503 when fetch itself
+  // fails — ECONNREFUSED / ENOTFOUND / aborted / DNS). Never leak the raw
+  // "fetch failed" text to users.
+  if (status === 503 || /fetch failed|ECONNREFUSED|ENOTFOUND/i.test(raw ?? "")) {
+    return "সার্ভারে পৌঁছানো যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।";
+  }
+  if (status === 401) {
+    return "ভুল ইউজারনেম বা পাসওয়ার্ড।";
+  }
+  if (status >= 500) {
+    return "সার্ভার সমস্যায় রয়েছে। পরে আবার চেষ্টা করুন।";
+  }
+  // Validation errors from the backend (400/409) — surface them if they
+  // look user-friendly, otherwise fall back to a Bangla default.
+  if (raw && raw.length < 180 && !/fetch failed/i.test(raw)) return raw;
+  return "লগইনে সমস্যা হয়েছে। আবার চেষ্টা করুন।";
+}
+
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [username, setUsername] = useState("");
@@ -25,11 +44,11 @@ export default function LoginPage() {
     setError(null);
 
     if (!username || !password) {
-      setError("Please enter your username and password.");
+      setError("ইউজারনেম এবং পাসওয়ার্ড দিন।");
       return;
     }
     if (!/^[a-zA-Z0-9_.-]{3,32}$/.test(username)) {
-      setError("Username must be 3–32 characters using letters, digits, dots, underscores, or hyphens.");
+      setError("ইউজারনেম ৩–৩২ অক্ষর, শুধু অক্ষর, সংখ্যা, ডট, আন্ডারস্কোর বা হাইফেন।");
       return;
     }
 
@@ -41,8 +60,8 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({ message: "Login failed" }))) as { message?: string };
-        setError(body.message ?? "Login failed. Please try again.");
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        setError(friendlyLoginError(res.status, body.message));
         setSubmitting(false);
         return;
       }
@@ -53,7 +72,7 @@ export default function LoginPage() {
         router.refresh();
       });
     } catch {
-      setError("Network error. Please check your connection.");
+      setError("নেটওয়ার্ক সমস্যা — ইন্টারনেট সংযোগ পরীক্ষা করুন।");
       setSubmitting(false);
     }
   }
