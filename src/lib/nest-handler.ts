@@ -17,8 +17,9 @@ import { IncomingMessage, ServerResponse } from "node:http";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import { NestFactory } from "@nestjs/core";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-import { ExpressAdapter } from "@nestjs/platform-express";
+import { ExpressAdapter, NestExpressApplication } from "@nestjs/platform-express";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
+// @ts-expect-error express has no bundled types; we only use its default export as a callable factory
 import express from "express";
 
 // eval('require') IS the escape hatch for the one import the tracer
@@ -47,9 +48,11 @@ async function getApp(): Promise<ExpressRequestHandler> {
     const expressApp = express();
     const adapter = new ExpressAdapter(expressApp);
 
-    const app = await NestFactory.create(AppModule, adapter, {
-      logger: ["error", "warn"],
-    });
+    const app = await NestFactory.create<NestExpressApplication>(
+      AppModule,
+      adapter,
+      { logger: ["error", "warn"] },
+    );
     app.setGlobalPrefix("api/v1");
     app.set("trust proxy", 1);
     // Minimal global pipes/filters are configured inside AppModule's providers
