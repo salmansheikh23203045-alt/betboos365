@@ -9,12 +9,22 @@
 import "reflect-metadata";
 import { Socket } from "node:net";
 import { IncomingMessage, ServerResponse } from "node:http";
+// Static requires for npm packages — these are listed in
+// next.config.ts::serverExternalPackages, so webpack leaves them as
+// runtime requires AND Vercel's file tracer includes them in the function
+// node_modules. DO NOT wrap these in eval(): that would hide them from
+// the tracer and the function would ship without @nestjs/core.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import { NestFactory } from "@nestjs/core";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import { ExpressAdapter } from "@nestjs/platform-express";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import express from "express";
 
-// eval('require') is the classic escape hatch: the bundler sees `eval`
-// and gives up static analysis, so none of the NestJS or compiled-dist
-// imports below are traced. They are resolved by Node's runtime loader
-// using the serverless function's node_modules (and server/dist/, which
-// is pulled in via outputFileTracingIncludes in next.config.ts).
+// eval('require') IS the escape hatch for the one import the tracer
+// genuinely cannot resolve: the compiled Nest module in server/dist/,
+// which lives outside Next.js's source tree and is produced by the
+// postinstall hook. We pull its parent folder in via outputFileTracingIncludes.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nodeRequire: (id: string) => any = eval("require");
 
@@ -29,9 +39,6 @@ let appPromise: Promise<ExpressRequestHandler> | null = null;
 async function getApp(): Promise<ExpressRequestHandler> {
   if (appPromise) return appPromise;
   appPromise = (async () => {
-    const { NestFactory } = nodeRequire("@nestjs/core");
-    const { ExpressAdapter } = nodeRequire("@nestjs/platform-express");
-    const express = nodeRequire("express");
     // Absolute path to the compiled Nest module. server/dist/ is produced
     // by the root package.json postinstall script before next build runs.
     const distModule = `${process.cwd()}/server/dist/app.module.js`;
