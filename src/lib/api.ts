@@ -2,27 +2,18 @@ import "server-only";
 
 const DEFAULT_BACKEND = "http://localhost:3200/api/v1";
 
-// Emit one loud warning per process if we're in production without the
-// backend URL configured. We don't throw — the graceful-503 wrapper in
-// `backendFetch` keeps the public pages serving, but an admin with the
-// right eyes-on-logs should see that something is off.
-let warned = false;
-function warnOnceIfMisconfigured() {
-  if (warned) return;
-  if (process.env.NODE_ENV === "production" && !process.env.BACKEND_API_URL) {
-    warned = true;
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[tcl11] BACKEND_API_URL is not set in production — falling back to " +
-        DEFAULT_BACKEND +
-        ". Set it in the Vercel dashboard to the Railway backend origin + /api/v1.",
-    );
-  }
+// On Vercel the NestJS backend is mounted at /api/v1 inside this very
+// project, so the BFF should call itself rather than an external URL.
+// We prefer the explicit env var when set, then the Vercel URL, then
+// the local dev fallback.
+function resolveBase(): string {
+  if (process.env.BACKEND_API_URL) return process.env.BACKEND_API_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/v1`;
+  return DEFAULT_BACKEND;
 }
 
 export function backendUrl(path: string): string {
-  warnOnceIfMisconfigured();
-  const base = process.env.BACKEND_API_URL ?? DEFAULT_BACKEND;
+  const base = resolveBase();
   const trimmed = base.replace(/\/+$/, "");
   return `${trimmed}${path.startsWith("/") ? path : `/${path}`}`;
 }
