@@ -4,8 +4,7 @@
 # is hosted separately (NestJS is not compatible with Vercel serverless).
 # ============================================================================
 
-# Backend (deployed separately; not part of this frontend build)
-server/
+
 
 # Environment files — NEVER ship any .env to Vercel.
 # Production env vars live in Vercel's dashboard, not the git/upload tree.
@@ -30,8 +29,7 @@ node_modules/
 coverage/
 *.tsbuildinfo
 
-# Prisma artifacts (belong to the backend)
-prisma/
+
 
 # Git-local
 .git/
