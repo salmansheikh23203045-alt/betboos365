@@ -4,10 +4,20 @@ const DEFAULT_BACKEND = "http://localhost:3200/api/v1";
 
 // On Vercel the NestJS backend is mounted at /api/v1 inside this very
 // project, so the BFF should call itself rather than an external URL.
-// We prefer the explicit env var when set, then the Vercel URL, then
-// the local dev fallback.
+// Resolution order:
+//   1. explicit BACKEND_API_URL env (lets overrides win)
+//   2. VERCEL_PROJECT_PRODUCTION_URL — the public production domain,
+//      NOT the per-deployment URL. Per-deployment URLs may be
+//      protected by Vercel Deployment Protection, which 401s server-
+//      to-server calls too.
+//   3. VERCEL_URL — per-deployment URL. Works on Preview, may be
+//      Auth-protected on Production.
+//   4. local dev fallback
 function resolveBase(): string {
   if (process.env.BACKEND_API_URL) return process.env.BACKEND_API_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/v1`;
+  }
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}/api/v1`;
   return DEFAULT_BACKEND;
 }
