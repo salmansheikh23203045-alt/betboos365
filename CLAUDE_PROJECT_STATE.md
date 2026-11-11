@@ -1,6 +1,19 @@
 # CLAUDE_PROJECT_STATE — TCL11 Website
 
-**Last updated:** 2026-11-11 (Step 13 committed; Step 14 production deploy in progress — blocked on 2 browser-only signups)
+**Last updated:** 2026-11-11 (Step 14: Neon wired, migrations + seed applied, Vercel env set; deploy to production imminent)
+
+---
+
+### Step 14 — Neon configured, migrations + seed applied, Vercel env set (2026-11-11)
+- **Neon CLI 9.3.2** installed; existing OAuth credentials at `C:\Users\This Pc\.config\neon\credentials.json` reused — no browser flow required.
+- **Neon project located (NOT created — user-created via dashboard):** `tcl11-prod`, id `royal-sea-19087447`, org `org-twilight-recipe-53933656` (Salman), region `aws-ap-southeast-1` (Singapore), Postgres 18, default branch `production` (`br-sweet-shape-azde9pgr`), database `neondb` (owner `neondb_owner`).
+- **Pooled + direct URLs fetched via `neon connection-string` and written to `server/.env.production`** — gitignored (verified by `git check-ignore`). Pooled URL appended with `&pgbouncer=true&connect_timeout=15` for Prisma + PgBouncer compatibility.
+- **Prisma migrate status (before):** 3 pending, DB empty, no `_prisma_migrations` table. **`prisma migrate deploy` applied all 3 cleanly:** `20261110050243_init`, `20261110090000_add_username`, `20261111030000_wallet_and_payments`.
+- **Production seed (`seed.prod.ts`) audited first — upsert-only, content-only, no user accounts, no admin password — then run:** 5 providers, 14 games, 5 leagues, 12 teams, 4 upcoming matches, 6 promotions seeded.
+- **18 Vercel production env vars pushed** via `vercel env add <NAME> production` with stdin, never printed in chat or logs: `NODE_ENV`, `API_PREFIX`, `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `JWT_EXPIRATION`, `JWT_REFRESH_EXPIRATION`, `CORS_ORIGINS`, `THROTTLE_TTL`, `THROTTLE_LIMIT`, `SPORTS_API_PROVIDER`, `LOG_LEVEL`, `WALLET_CURRENCY`, `DEPOSIT_AGENT_NUMBER`, `DEPOSIT_MIN`, `DEPOSIT_MAX`, `WITHDRAWAL_MIN`, `WITHDRAWAL_MAX`. `JWT_SECRET` is 96 hex chars from `crypto.randomBytes(48)`, unique to production.
+- **Git remote reconciled with existing GitHub repo** `https://github.com/salman8809/tcl11-website.git`. Remote had 3 preparatory commits (`680e1b2`, `1bf0372`, `6d429e9` — "Prepare TCL11 for Vercel deployment", "Fix Vercel deployment exclusions", "Fix Vercel deployment identity") that already carried the catch-all route, nest-handler bridge, next.config externalPackages fix, and notifications-gateway guards. Local rebase conflicted; I adopted remote as source of truth (backup `backup-088beec` branch preserves my parallel work) and only need to add back `allowScripts` block for npm install-script approval, which was the missing piece.
+- **Vercel project confirmed:** linked to `salman8809/tcl11-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`). `tcl11-website-gcbc` also exists on the account — **not touched, not used**, per the explicit directive.
+- **Next step:** push one more commit (allowScripts + this doc entry) → `vercel --prod` → smoke test → fill `PRODUCTION_DEPLOYMENT_REPORT.md`.
 
 ---
 
