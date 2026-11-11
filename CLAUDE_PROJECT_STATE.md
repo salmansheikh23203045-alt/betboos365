@@ -676,3 +676,15 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
 - New: `/fishing` (playable virtual-points canvas game), `/responsible-gaming`, `/notifications` (live backend data), `/referral`, `/forgot-password`; admin `/admin/reports` replaced with a real live-data dashboard.
 - Bangla UI applied across sidebar, topbar, public nav, mobile tabs, footer, profile tabs, wallet labels, and all new pages (~70 % Bangla / 30 % English).
 - Next step: user visual approval of the Bangla layout and the Fishing Game. Then run Playwright visual verification across the 5 configured viewports. Production Deployment still queued.
+
+---
+
+### Step 14 - Vercel-only production readiness audit (2026-11-11 16:46 +06:00)
+- User requested a complete audit before approval; no application code was changed and no deployment/database migration was run.
+- Report saved as [`DEPLOYMENT_READINESS_AUDIT.md`](./DEPLOYMENT_READINESS_AUDIT.md).
+- Overall readiness: **NOT READY**. Local Next production build and root TypeScript check pass. Backend type-check could not pass in the current local dependency state: the root manifest requires Prisma 6 while the root lock/install resolves Prisma 8 RC; the backend's own dependency install is absent.
+- Read-only checks: linked Vercel production environment has no configured variables; live homepage returned 200, while `/api/v1/promotions` and `/api/me/wallet/providers` returned 404.
+- The generated local Next function trace did not contain `server/dist`, Nest, Express, or Prisma runtime files; `.vercelignore` excludes `server/`. The Vercel Nest adapter also omits global bootstrap middleware/interceptors expected by frontend BFF handlers.
+- Database schema has three migration folders, but production DB connectivity and applied migration state were not verified. Production `DATABASE_URL` / `DIRECT_URL` are blank locally and not configured in Vercel.
+- Major security blockers documented in report: development JWT-secret fallback, deactivated-user token validity, refresh-cookie rotation not persisted in `getSession()`, no effective throttler guard, and client-supplied websocket identity.
+- Existing changes/untracked files present at audit start were preserved. Current source audit findings supersede earlier deployment notes where repository state or deployment status differs.

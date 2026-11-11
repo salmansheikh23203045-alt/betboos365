@@ -58,15 +58,21 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     return { event: 'unsubscribed', data: { channel: 'sports', eventIds: data.eventIds } };
   }
 
+  // On Vercel (serverless) no WebSocket server is bound; broadcasts become
+  // no-ops rather than crashing the request. REST notification writes still
+  // land in the DB; clients see them on next `/notifications` fetch.
   sendToUser(userId: string, event: string, payload: unknown) {
+    if (!this.server) return;
     this.server.to(`user:${userId}`).emit(event, payload);
   }
 
   sendToAll(event: string, payload: unknown) {
+    if (!this.server) return;
     this.server.emit(event, payload);
   }
 
   sendSportUpdate(eventId: string, payload: unknown) {
+    if (!this.server) return;
     this.server.to(`sport:${eventId}`).emit('sport:update', payload);
   }
 
