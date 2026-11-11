@@ -51,6 +51,28 @@ export class GamesService {
     return this.toResponseDto(game);
   }
 
+  async findByIdIncludingInactive(id: string) {
+    // Admin lookup — returns inactive games too, so admins can toggle them
+    // back on. Players still hit findById which filters inactive out.
+    const game = await this.prisma.game.findUnique({
+      where: { id },
+      include: { provider: true },
+    });
+    if (!game) throw new NotFoundException('Game not found');
+    return this.toResponseDto(game);
+  }
+
+  async update(id: string, data: { isActive?: boolean; title?: string; thumbnailUrl?: string }) {
+    const existing = await this.prisma.game.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Game not found');
+    const game = await this.prisma.game.update({
+      where: { id },
+      data,
+      include: { provider: true },
+    });
+    return this.toResponseDto(game);
+  }
+
   async getCategories() {
     const results = await this.prisma.game.findMany({
       where: { isActive: true },

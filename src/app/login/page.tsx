@@ -132,15 +132,24 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="flex justify-end -mt-1">
+            <Link
+              href="/forgot-password"
+              className="text-caption text-tcl-gold hover:underline"
+            >
+              পাসওয়ার্ড ভুলে গেছেন?
+            </Link>
+          </div>
+
           <PrimaryButton type="submit" fullWidth size="lg" className="mt-2" disabled={submitting}>
-            {submitting ? "Logging in…" : "Log In"}
+            {submitting ? "Logging in…" : "লগ ইন"}
           </PrimaryButton>
         </form>
 
         <p className="text-center text-caption text-tcl-muted">
-          Don&apos;t have an account?{" "}
+          অ্যাকাউন্ট নেই?{" "}
           <Link href="/signup" className="font-semibold text-tcl-gold hover:underline">
-            Sign Up
+            সাইন আপ
           </Link>
         </p>
       </NeonCard>

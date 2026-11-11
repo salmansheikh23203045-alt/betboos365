@@ -55,7 +55,7 @@ export function HomeDesktop() {
       <aside className="min-w-0 space-y-4">
         <VIPProgressCard status={VIP_STATUS} />
         <LiveTransactionTable transactions={TRANSACTIONS} />
-        <PromotionBanner promo={SPORTS_PROMO} variant="compact" tone="gold-gold" artLabel="Sports betting artwork" />
+        <PromotionBanner promo={SPORTS_PROMO} variant="compact" tone="gold-gold" artSrc="/images/sports/sports-art.svg" artLabel="Sports betting artwork" />
         <WhyChooseGrid />
       </aside>
     </div>

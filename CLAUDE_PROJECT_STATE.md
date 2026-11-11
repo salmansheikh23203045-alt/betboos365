@@ -1,11 +1,90 @@
 # CLAUDE_PROJECT_STATE — TCL11 Website
 
-**Last updated:** 2026-11-10 (username-based auth landed)
+**Last updated:** 2026-11-11 (dev-server resilience fix + Step 11 landed)
 
 ---
 
 ## 1. Current development step
-**Production deployment PREP** (ready for user-executed launch — Step 09 approved on 2026-11-10). The chosen infrastructure is Vercel (frontend, existing project) + Railway (NestJS backend) + Neon (PostgreSQL) + Prisma. No live deployment or production data modification has happened yet — those wait on explicit user approval after the owner performs the Neon/Railway sign-up and variable-paste steps in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). Step 10 is not started.
+**Step 12 — Full project completion, Bangla UI, Fishing Game, missing routes** (COMPLETE locally; 59 routes build; all 36 anonymous route probes + 14/17 authed admin probes pass, the 3 misses are super_admin-only pages correctly guarded for an admin session; 31/31 wallet E2E still green). Step 11 (Wallet) and Step 10 (Admin dashboard) remain locally verified. Production Deployment is still unstarted — proceed when owner approves.
+
+### Game-artwork consistency fix (2026-11-11)
+- **Symptom reported:** Desktop game cards showed "ASSET PENDING" placeholders while mobile correctly rendered WebP artwork — same games, different components, divergent image mapping.
+- **Root cause:** [`src/components/games/GameCard.tsx:45`](src/components/games/GameCard.tsx#L45) rendered `<AssetPlaceholder>` inside a wrapper marked `max-lg:hidden`, so on mobile the placeholder was invisible (letting the surrounding WebP crops from `MobileGameTiles` show through) while on desktop the placeholder was the only thing rendered because `POPULAR_GAMES`/`FEATURED_GAMES`/`CASINO_GAMES`/etc. in [`src/data/mock.ts`](src/data/mock.ts) and [`src/data/pages.ts`](src/data/pages.ts) had no `artSrc`. Mobile used its own `mobileHome.ts` tiles that did carry `artSrc` — so the two trees fell out of sync.
+- **Fix — one artwork pipeline, every viewport:**
+  - [`src/lib/gameArt.ts`](src/lib/gameArt.ts) — single `resolveGameArt(gameId)` map covering every id used anywhere in the data layer (popular, featured, casino, slots, live-casino) and a deterministic `gameAccent(gameId)` helper. Points at the existing `public/images/games/popular/*.webp`, `public/images/games/featured/*.webp` and `public/images/games/popular/slot.svg` files — **no new binary assets shipped**, no unlicensed provider logos invented.
+  - [`src/components/games/BrandedTile.tsx`](src/components/games/BrandedTile.tsx) — procedurally-drawn inline SVG fallback (radial gradient in TCL palette, 16-ray starburst, gold-stroked medallion with the title's initial, bottom red strip). Looks like intentional casino art, not a placeholder. Hash-tinted per game id so tiles don't look identical.
+  - [`src/components/games/GameCard.tsx`](src/components/games/GameCard.tsx) — rewrites artwork resolution to: `game.artSrc` → `resolveGameArt(game.id)` → `BrandedTile`. The `max-lg:hidden` discrepancy is gone; identical tree at every viewport. Image `sizes` bumped to `180px` so desktop hits sharper candidates. No path can produce an "Asset pending" box or an empty box.
+  - [`src/components/promo/PromotionBanner.tsx`](src/components/promo/PromotionBanner.tsx) — removed the `AssetPlaceholder` fallback; empty slots now render an intentional `BannerArt` branded SVG (red/gold radial + gold medallion). [`src/components/home/HomeDesktop.tsx`](src/components/home/HomeDesktop.tsx) now points the Sports banner at the existing `/images/sports/sports-art.svg` so it carries real art instead of the fallback.
+- **Other files unchanged:** mobile tiles (`MobileGameTiles`, `mobileHome.ts`) already carried their own `artSrc`; nothing to rewrite. The only remaining `AssetPlaceholder` import is in `src/components/dev/DesignSystemShowcase.tsx`, which is the dev route and `notFound()`s in production.
+- **Verification (2026-11-11):**
+  - Frontend `tsc --noEmit`: 0 errors. `next build`: 59 routes clean.
+  - `grep "Asset pending\|ASSET PENDING"` on live dev-rendered HTML for `/`, `/casino`, `/slots`, `/live-casino`, `/esports`: **0 hits on every page** (was 10+ before on desktop).
+  - `/casino` server-rendered HTML now references 18 distinct game image files (`/images/games/popular/*.webp`, `/images/games/featured/*.webp`, `/images/games/popular/slot.svg`).
+  - `/esports` server-rendered HTML now contains BrandedTile SVG markers (`bt-rad-`, `bt-gold-`) for every tile — those games intentionally have no stock artwork and use the branded fallback.
+  - Full route audit re-run: **36/36 OK**, no 4xx/5xx.
+- **Spec constraints honoured:**
+  - No fake provider logos invented — the only artwork used is either the WebP crops the user supplied, the hand-built `slot.svg`, or the procedural `BrandedTile` SVG that is clearly abstract branding (initial letter + star medallion, not a logo).
+  - Design system untouched: black base, red neon border, gold medallion, white typography.
+  - Mobile rendering identical to before (its tree was already working); the fix is strictly additive on the desktop tree.
+- **Known residuals (not regressions):**
+  - Esports titles still use the branded fallback because licensed esports game art isn't in the repo. They now read as intentional branded tiles, not "pending" boxes.
+  - Slot-game titles under `/slots` map to the closest provider WebP (e.g. multiple Pragmatic Play slots share the Pragmatic tile) so every tile has real-looking artwork; individual game artwork is a future step tied to provider licensing.
+
+### Step 12 — Project completion pass (2026-11-11)
+- **Bangla UI layer (`src/i18n/bn.ts`):** A single typed string table keyed by domain (`nav`, `auth`, `wallet`, `tx`, `profile`, `admin`, `fishing`, `responsibleGaming`, `notifications`, `referral`, `common`, `footer`). ~180 strings in standard Bangla Unicode, written to reach ~70 % Bangla / 30 % English on every visible surface. Imported where it matters instead of a runtime i18n framework (the site is single-locale, so a plain object compiles to zero runtime cost). Applied to: `AdminSidebar` (13 labels), `AdminTopbar` (dashboard header, dropdown links, logout), public `NAV_ITEMS` and `MOBILE_TABS` (nav + bottom tabs now Bangla), `FOOTER_COLUMNS` (sections + links re-translated and extended with new routes), `WHY_CHOOSE_FEATURES`, Profile tabs + stat tiles + wallet card + Deposit/Withdraw labels, `/login` page (Bangla "Log In", "Sign Up", forgot-password link in Bangla), all new Step-12 pages.
+- **New public routes (all 200 OK on `next build`):**
+  - `/forgot-password` ([`src/app/forgot-password/page.tsx`](src/app/forgot-password/page.tsx)) — password-reset form, honest "self-service reset not yet configured" banner, directs the user to `/contact`. Does NOT fake a reset flow.
+  - `/notifications` ([`src/app/notifications/page.tsx`](src/app/notifications/page.tsx)) — authed, pulls from `GET /api/v1/notifications`, 307s anonymous visitors. Renders live rows with read/unread styling, empty-state copy, and a backend-down banner. **No mock data.**
+  - `/referral` ([`src/app/referral/page.tsx`](src/app/referral/page.tsx) + [`src/components/referral/ReferralCard.tsx`](src/components/referral/ReferralCard.tsx)) — authed; code derived from the user's username, copy-to-clipboard for code and link, WhatsApp/Telegram/Facebook/X share buttons with `wa.me` / `t.me` / Facebook / Twitter share URL templates. Honest "coming soon" banner noting the payout ledger isn't live.
+  - `/responsible-gaming` ([`src/app/responsible-gaming/page.tsx`](src/app/responsible-gaming/page.tsx)) — 4 commitment cards, 5 warning signs, 3 real external helplines (BeGambleAware, GamCare, Gamblers Anonymous), link to `/contact` and `/faq`. Pure Bangla editorial copy.
+  - `/fishing` ([`src/app/fishing/page.tsx`](src/app/fishing/page.tsx) + [`src/components/fishing/FishingGame.tsx`](src/components/fishing/FishingGame.tsx)) — see below.
+- **Fishing Game — interactive canvas demo (virtual points only):**
+  - 60 fps `<canvas>` with device-pixel-ratio scaling and window-resize handling.
+  - Underwater art pipeline: layered sea gradient, drifting light shafts (additive blending), rising bubbles, procedurally drawn fish with glowing body/tail/fin silhouettes and animated phase bob.
+  - Four fish kinds — small (10 pts, 1 HP), medium (25 pts, 2 HP), large (60 pts, 4 HP), boss (180 pts, 8 HP) — weighted spawn probabilities, bidirectional swim with `@scale(-1,1)` mirroring, random vertical drift via `sin(phase)`.
+  - Cannon aims at the mouse/touch pointer, clamped to never aim below the water line; red bullet projectiles with life, velocity, and glow. Reload cooldown of 6 frames. Ammunition: 200 bullets per round; auto game-over when ammo + in-flight bullets reach zero.
+  - Particles: 18-splash burst when a fish dies; 6-spark burst on any hit.
+  - Controls: mouse move + click to shoot; `Space` to shoot; `P` to pause; on-canvas Play / Pause / New Game overlays; external Play/Pause/Restart buttons; sound toggle (Web Audio API `OscillatorNode` beeps — defaults muted to respect auto-play policies, user can un-mute).
+  - HUD: live Score and Bullets tiles pinned to the canvas, clear game-over screen with final score and a New Game button.
+  - Explicit note on the page and in the game: **"ভার্চুয়াল পয়েন্টের ডেমো — আসল টাকা জড়িত নেই"** (virtual points only, not connected to the wallet). Follows the spec constraint to never couple unconfigured games to real-money flow.
+- **Nav / footer updates:** added `fishing` to `NAV_ITEMS`, added `referral` + `notifications` + `responsible-gaming` to the appropriate footer columns. `MOBILE_TABS` unchanged (5 primary tabs stay — the reference's design is still authoritative for the mobile bottom nav).
+- **Admin Reports page** ([`src/app/admin/reports/page.tsx`](src/app/admin/reports/page.tsx)) — replaces the `PendingSection` placeholder. Fetches `GET /api/v1/admin/dashboard` + `GET /api/v1/admin/finance/summary` and renders two tile grids (Platform + Finance) with values from live DB counts. Fields matched to the backend's actual response (`totalUsers`, `activeUsers`, `recentRegistrations`, `totalGames`, `activePromotions`, `openTickets`, `connectedClients` + the finance status breakdown). Falls back gracefully when either call fails.
+- **Login UX:** Bangla "পাসওয়ার্ড ভুলে গেছেন?" link to `/forgot-password`; submit button and signup link translated.
+- **Zero broken-link verification (route-audit):**
+  - Anonymous walk: 22/22 public routes + 14/14 admin redirects = **36/36 pass**, no 4xx/5xx.
+  - Authed walk as `admin`: 11/14 admin pages return 200 inline (others 307 — super_admin-only, correctly hidden from the admin sidebar), plus 3/3 authed user routes 200. The 307s are not failures.
+  - Backend wallet E2E re-run against live local DB: **31/31 pass**.
+- **Honouring the spec constraints:**
+  - No mock-data pretending — notifications pulls live rows, admin reports pulls live counts, referral payouts and forgot-password are flagged as honestly "not yet configured" rather than faked.
+  - All UI palette (black/red/gold/white), existing components (NeonCard, PageBanner, PrimaryButton, SecondaryButton), and the mobile bottom nav were preserved.
+  - No real-money wagering touches Fishing — explicit demo badge, 200 virtual bullets, no wallet call on fire/hit/death.
+- **Builds:** Frontend `tsc --noEmit`: 0 errors. `next build`: 59 routes (previously 54), all compile cleanly. Backend `tsc --noEmit`: 0 errors.
+- **Known limitations (documented, not blockers):**
+  - `/forgot-password` cannot send a reset — SMS/email gateway not configured. Fallback is a Contact Support CTA.
+  - `/referral` shows a stable derived code but has no payout tracking yet — deliberate.
+  - The notifications bell in the admin topbar is still disabled (no notifications dashboard). Only the public `/notifications` reads live data.
+  - Bangla coverage targets ~70 % of visible text; some legal/informational blocks (Terms, Privacy, deeper admin pages that pre-date Step 12) are still in English. Future passes can replace them from the `BN` table without new infrastructure.
+
+### Dev-server resilience fix (2026-11-11)
+- **Symptom reported:** `GET / 500` with `TypeError: fetch failed · ECONNREFUSED ::1:3200`. Root cause: the NestJS backend process on `localhost:3200` was not running (stopped at the end of the previous session), and `src/app/layout.tsx` calls `getSession()` on every request. For a visitor with existing `tcl_at`/`tcl_rt` cookies, `getSession()` → `backendFetch('/users/me')` would throw an un-caught `TypeError`, which Next.js surfaces as 500. Anonymous visitors did not hit this path and still returned 200, so the error only appeared for logged-in users (or users with stale cookies from a prior session).
+- **Fix:** [`src/lib/api.ts`](src/lib/api.ts) — `backendFetch()` now wraps the underlying `fetch(...)` in try/catch and, on network failure (ECONNREFUSED / ENOTFOUND / aborted / DNS), returns a synthetic 503 `Response` with `{ message: "Backend unreachable: <detail>" }`. Every existing caller already branches on `res.ok` and surfaces errors through its own fallback (e.g. promotion page falls back to mock, `getSession()` returns null, BFF routes return 503 to the browser). No caller crashes the render anymore.
+- **Behaviour verified (backend intentionally STOPPED):**
+  - `GET /` (anonymous) → 200.
+  - `GET /` with stale `tcl_at`/`tcl_rt` cookies → 200 (session resolves to null, page renders as anonymous).
+  - `GET /promotion` with stale cookies → 200 (falls back to mock promotions).
+  - `GET /login` → 200.
+  - No 500s anywhere.
+- **Behaviour verified (backend STARTED on :3200):**
+  - `GET /api/v1/promotions` → 200 (Railway's healthcheck target).
+  - `GET /` → 200.
+  - `GET /api/me/wallet/config` (anonymous proxy → public backend) → 200 and returns `{currency:"BDT", agentNumber:"01956869852", deposit:{min:100,max:100000}, withdrawal:{min:500,max:50000}}`.
+- **Runtime status at write time:** PostgreSQL 17 service `postgresql-x64-17` running on 5432 · NestJS backend running on `:3200` (built artifact `server/dist/main.js`) · Next.js dev server running on `:3000` · `.env.local` at repo root unchanged (`BACKEND_API_URL=http://localhost:3200/api/v1`) · `server/.env` unchanged (DB credentials).
+- **Startup commands (unchanged — for future sessions):**
+  - PostgreSQL: Windows service, autostart.
+  - Backend: `cd server && node dist/main.js` (requires `nest build` first if source changed).
+  - Frontend dev: `npx next dev` from repo root.
+- **No UI / auth / feature changes.** The fix is strictly the one `backendFetch` wrapper; no components, routes, DTOs, cookies, or schema were touched.
+- **Verifications:** Frontend `tsc --noEmit`: 0 errors. `next build`: 54 routes generated cleanly. HTTP smoke test on all five test URLs above: 5/5 pass.
 
 Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start until Step 02 is approved.
 
@@ -385,16 +464,84 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
   - Rebuilt backend booted cleanly end-to-end: Prisma connected, 35+ routes mapped, `GET /api/v1/promotions` returned HTTP 200 (this is the Railway healthcheck target). `GET /api/v1/users/me` without auth → 401 (guards intact). Swagger reachable at `/api/v1/docs` only when `NODE_ENV !== 'production'` — confirmed.
 - **Known issue — deferred, not a blocker:** a dedicated `/health` + `/ready` controller was built but Nest 11 + Express 5 reported routes as `Mapped` in the startup log while actual requests returned 404. Rather than block the prep on a routing mystery, the module was removed and Railway's healthcheck points at the existing public `GET /api/v1/promotions` endpoint, which is a valid probe target (public, fast, exercises HTTP + Prisma). Logged in `docs/DEPLOYMENT.md` §5 Known issues.
 
+### Step 10 — follow-up (2026-11-10, after provisional approval)
+- **Backend admin write endpoints added:**
+  - `PATCH /api/v1/games/:id` (admin-only) — accepts partial `{ isActive?, title?, thumbnailUrl? }`.
+  - `PATCH /api/v1/promotions/:id` (admin-only) — partial update; flipping `isActive` toggles `PromotionStatus` between `ACTIVE` and `DRAFT`.
+  - `DELETE /api/v1/promotions/:id` (admin-only) — hard delete; `userPromotions` cascade-cleans via the schema.
+  - `GET /api/v1/promotions?includeInactive=true` — admin-visible drafts / expired.
+- **New BFF routes:** `POST /api/admin/promotions`, `PATCH /api/admin/promotions/[id]`, `DELETE /api/admin/promotions/[id]`, `PATCH /api/admin/games/[id]` — all go through `withAuthedBackend` so refresh rotation still works.
+- **Admin CRUD forms built:**
+  - `/admin/promotions/new` — full Create form with validation.
+  - `/admin/promotions/[id]/edit` — same form in edit mode plus a Delete button (with `confirm()` guard).
+  - `/admin/games` — per-row `<GameToggleCell>` that PATCHes `isActive`; the public `/games` endpoint filters by `isActive` so a toggle immediately hides the game from players.
+- **Platform capabilities section** added to `/admin/settings` listing Live / Not Available / Deferred / Read-only status for every feature (auth, user mgmt, promotions CRUD, game toggle, audit logs, notifications, global search, transactions, sports odds editing, game CRUD, password reset). This is the central document for "what works and why".
+- **Topbar accessibility pass:** notification button, messages button and the global search input now have `aria-disabled="true"`, `cursor-not-allowed`, visibly dimmed styling, and tooltips/aria-labels pointing at Platform capabilities.
+- **End-to-end CRUD + toggle verified against live local DB (9/9 pass):** create → edit → draft visible in admin list → draft hidden from public `/promotion` → delete → GET 404 → game toggle off → hidden from public `/games` → toggle on → restored.
+- **Playwright installed** (`@playwright/test` + chromium; ~130 MB). Config at `playwright.config.ts` with 5 projects: `mobile-375`, `mobile-390`, `mobile-430`, `desktop-1440`, `desktop-1920`. Mobile projects pin `browserName: "chromium"` because default device profiles ship as webkit (not installed). Spec at `tests/visual/admin.spec.ts` covers 14 public routes + 9 admin routes + a console-error assertion; 120 test runs total.
+- **Visual & interaction verification (2026-11-10):** All 120/120 Playwright tests passed (5.3m run). Full-page screenshots (115 total) captured across 375px, 390px, 430px, 1440px, and 1920px viewports under `docs/screenshots/` (gitignored). Mobile admin pages verified clean with zero public chrome overlap.
+- **Automated QA verification:** Auth (valid login, 401 on bad password/missing token), RBAC access (403 on non-admin `/admin/dashboard`), RBAC privilege escalation guards (403 on self-role change, 403 on self-deactivation, 403 on admin granting SUPER_ADMIN or ADMIN), Promotion CRUD (create, draft toggle, draft hidden from public, draft visible to admin, delete, 404 on deleted), and Game active toggle (on/off reflected immediately) all verified 100% passing.
+- **Build verification:** Frontend `tsc --noEmit` (0 errors), backend `tsc --noEmit` (0 errors), Next.js `npm run build` (all 44 routes generated cleanly), NestJS `nest build` (clean).
+
+### Step 11 — Deposit / Withdraw / Transaction Management (2026-11-11, verified against live local PostgreSQL)
+- **Scope:** Full BDT-currency wallet system with mobile-banking deposits (bKash, Nagad, Rocket, Upay), manual-review workflow, withdrawal reservation ledger, unified transaction history for users, and an admin Wallet & Finance workspace that approves/rejects/completes requests. Zero auto-approval, no synthetic balances, all money moves inside atomic Prisma transactions.
+- **Prisma schema additions (`server/prisma/schema.prisma`):**
+  - 3 new enums: `TransactionStatus` (PENDING/APPROVED/REJECTED/COMPLETED), `PaymentType` (SEND_MONEY/CASH_OUT), `WalletLedgerType` (DEPOSIT_CREDIT, WITHDRAWAL_RESERVE/RELEASE/DEBIT, ADJUSTMENT_CREDIT/DEBIT). 7 new values appended to `AuditAction` (DEPOSIT/WITHDRAWAL SUBMITTED/APPROVED/REJECTED/COMPLETED).
+  - 5 new models: `PaymentProvider` (seeded with the 4 BD services), `Wallet` (one-per-user, `availableBalance` + `reservedBalance` + optimistic-locking `version`), `WalletTransaction` (immutable append-only ledger, indexed on wallet+createdAt and reference), `DepositRequest` (user+provider+paymentType+amount+trxRef, unique `idempotencyKey = userId:providerId:TRX`), `WithdrawalRequest` (user+provider+phone+amount, `reservationTxId` binds to the ledger row that reserved the funds).
+  - All monetary fields `Decimal(14,2)`. Every FK indexed. User cascade-deletes own deposits/withdrawals/wallet; provider deletes `RESTRICT` (protects financial history).
+- **Migration (`20261111030000_wallet_and_payments`):** 139-line idempotent SQL — enum extensions guarded with `IF NOT EXISTS`, new tables with FKs + unique indexes, seeds the 4 payment providers via `gen_random_uuid()` + `ON CONFLICT DO NOTHING`, backfills a wallet row for every existing user. Applied cleanly to the local `tcl11` DB (`_prisma_migrations` now has 3 rows).
+- **NestJS backend (`server/src/wallet/`):**
+  - `wallet.service.ts` — `credit()`, `reserve()` (with optimistic-lock + `InsufficientBalanceError`), `releaseReservation()`, `debitReservation()`. Every mutation goes with a matched `walletTransaction` ledger write inside the same `prisma.$transaction` callback (same `Tx` client), so a crash between the two is impossible.
+  - `deposits.service.ts` — create (writes idempotency key, P2002 → 409 Conflict), user list, admin list (status + provider + search filters), `adminApprove` (atomic: lock-via-updateMany on PENDING, upsert wallet, credit, bump profile `totalDeposits`, audit log), `adminReject` (lock-via-updateMany, audit).
+  - `withdrawals.service.ts` — create (rejects a second PENDING to stop stacking reservations, calls `reserve()` inside the same tx as the row insert, binds `reservationTxId`), user list, admin list, `adminApprove` (status transition), `adminReject` (releases reservation back to available), `adminComplete` (only from APPROVED, requires an explicit step, `debitReservation` + bumps profile `totalWithdrawals`, requires `payoutReference`).
+  - `wallet.controller.ts` — authed `/wallet/me`, `/wallet/deposits` (POST/GET), `/wallet/withdrawals` (POST/GET), `/wallet/transactions` (unified list with `type` + `status` filters), `/wallet/transactions/:id` (user-scoped, 404-safe on other users'). Public `/wallet/providers` and `/wallet/config` (serves limits + agent number from env, defaults BDT 100–100 000 deposit / 500–50 000 withdrawal, agent `01956869852`).
+  - `admin-finance.controller.ts` — `@Roles(ADMIN, SUPER_ADMIN)` guarded `GET /admin/finance/{deposits,withdrawals}`, `GET /admin/finance/summary`, `POST /admin/finance/deposits/:id/{approve,reject}`, `POST /admin/finance/withdrawals/:id/{approve,reject,complete}`. Every write path calls the global `AuditService` with action, actor, request IP, user-agent.
+  - `wallet.module.ts` registered in `app.module.ts` between Support and Admin. DTOs use `class-validator` with precise messages (`class-transformer` coerces `amount` via `@Type(() => Number)`, Bangladeshi phone regex `/^(?:\+?8801|01)[3-9]\d{8}$/` on withdrawal, alphanumeric 4–64 on deposit TrxID).
+- **Next.js BFF routes (`src/app/api/`):**
+  - User: `POST/GET /api/me/deposits`, `POST/GET /api/me/withdrawals`, `GET /api/me/wallet`, `GET /api/me/wallet/config`, `GET /api/me/wallet/providers`, `GET /api/me/transactions`.
+  - Admin: `GET /api/admin/finance/{deposits,withdrawals,summary}`, `POST /api/admin/finance/deposits/[id]/[action]` (approve|reject), `POST /api/admin/finance/withdrawals/[id]/[action]` (approve|reject|complete). All authed via `withAuthedBackend` so refresh rotation still works.
+- **Frontend UI (`src/components/wallet/`, `src/app/profile/ProfileClient.tsx`, `src/components/admin/FinanceManager.tsx`, `src/app/admin/finance/page.tsx`):**
+  - Shared `Modal` (portal, Escape close, body-scroll lock, backdrop click) in `src/components/ui/Modal.tsx`.
+  - `DepositModal` — 4-step: Method → Payment Type → Amount → Confirm (agent number + Copy button + Transaction ID input + submit). Step subtitle updates with progress. "Submitted" final state explains the PENDING flow.
+  - `WithdrawModal` — single-step: provider grid, BD mobile input (regex-validated), amount (with min/max from config + balance check), submits and refreshes wallet. Reservation visible to the user in the balance banner after submit.
+  - `TransactionList` — unified list for the Profile `Transactions` tab. 6 filter chips (All / Deposit / Withdraw / Pending / Approved / Rejected). Desktop table + mobile cards. `StatusBadge` component covers all 4 statuses with distinct colours.
+  - `ProfileClient.tsx` now renders a Wallet balance card in Overview with Deposit + Withdraw buttons, loads the live wallet via `/api/me/wallet`, and refreshes after each submission. Mock transaction table removed from Transactions tab.
+  - `FinanceManager.tsx` (admin) — Deposits/Withdrawals tab switcher, status + provider + search filters, paginated table, summary tiles across the top, and a per-row "Open" modal that shows every field, admin-note textarea, and action buttons. Approved withdrawals require a `payoutReference` input before Complete is enabled. Rejection releases the reservation; completion debits it.
+  - `src/app/admin/finance/page.tsx` replaces the earlier `PendingSection` placeholder. `/admin/transactions` page updated to link to Wallet & Finance.
+  - Icon registry gained `Copy`, `ArrowDownCircle`, `ArrowUpCircle`, `AlertTriangle`, `Loader2`, `CheckCircle2`, `XCircle`, `Filter`.
+- **Configuration (env, no code change required):** `WALLET_CURRENCY`, `DEPOSIT_AGENT_NUMBER`, `DEPOSIT_MIN`/`DEPOSIT_MAX`, `WITHDRAWAL_MIN`/`WITHDRAWAL_MAX`. All default-sensible so the system runs without configuration.
+- **Security & responsible-gaming guarantees enforced in code:**
+  - User endpoints are wrapped in `JwtAuthGuard`; every write pulls `userId` from `@CurrentUser('id')` and never from the body.
+  - Admin endpoints require `ADMIN` or `SUPER_ADMIN` via `RolesGuard`.
+  - Idempotency: one deposit per (user, provider, TrxID). Second try → 409.
+  - Reservation on withdrawal happens inside the same Prisma transaction as the row insert; failure rolls both back.
+  - `updateMany` with a status predicate is the row-level lock for approve/reject/complete — a second concurrent admin loses the race and gets 409 instead of double-processing.
+  - Rejection path releases the reservation (money returns to available). Completion path debits reservation (money leaves the business). Available balance never moves without an audit log + ledger write.
+  - `AuditService.log()` is called on every admin decision with IP + user-agent, writing a row into `audit_logs`.
+- **End-to-end verification (2026-11-11, live local backend + PostgreSQL):**
+  - Backend `tsc --noEmit`: 0 errors. `nest build`: compiles.
+  - Frontend `tsc --noEmit`: 0 errors. `next build`: 54 routes generated (10 new ones: 6 BFF routes + 4 admin pages/placeholders).
+  - Prisma migrate deploy: migration applied cleanly; 4 providers seeded; wallets backfilled for all 9 existing users.
+  - Automated E2E suite (`scratchpad/wallet-e2e.mjs`): **31/31 tests passed**. Covers: register, providers list, config, zero-balance wallet, below-minimum 400, unknown-provider 400, PENDING deposit create, duplicate-TrxID 409, no-credit-before-approval, non-admin 403 on admin endpoints, admin list, admin approve (wallet credited to 2000), re-approve 409, withdraw-above-balance 400, invalid-phone 400, withdrawal creates PENDING and reserves 1500, second-pending-withdrawal 409, reject releases reservation (back to 2000), fresh withdrawal + approve + complete debits reservation (wallet=1000), double-complete 409, unified transaction list length=3, type filter, status filter, cross-user isolation (other user sees 0 transactions), finance summary counts.
+  - Audit trail verified in DB: 1 DEPOSIT_SUBMITTED, 1 DEPOSIT_APPROVED, 2 WITHDRAWAL_SUBMITTED, 1 WITHDRAWAL_APPROVED, 1 WITHDRAWAL_REJECTED, 1 WITHDRAWAL_COMPLETED rows written during the test run.
+  - Ledger verified in DB: 5 wallet_transaction rows match the reserve → release → reserve → debit sequence with balance-after values that reconcile to the final state.
+- **Known limitations (documented):**
+  - Vendor logos not shipped — brand mark uses `ProviderLogo` initial on brand colour. Swap in licensed SVGs when available.
+  - VIP tier progress and the Transactions screen's older mock data were removed; VIP card still reads static mock (`VIP_STATUS`) because no backend tier/progress endpoint exists yet.
+  - Reservation stacking is blocked at "one pending withdrawal per user"; if partial withdrawals are needed later, either lift the lock and track total-reserved against available-only, or let the admin close pending items first.
+  - No payment-gateway integration — deposit verification is strictly manual (admin eyeballs the agent app and the TrxID). No webhook ingestion exists.
+  - Playwright visual verification for the new modals and the admin finance page was NOT re-run in this pass (production build passes, backend E2E passes). Run before user acceptance.
+
 ## 3. Pending tasks
-- [ ] **Owner executes the browser steps in `docs/DEPLOYMENT.md` §3:** sign up for Neon (§3.1), sign up for Railway + deploy `server/` from GitHub (§3.2), wire `BACKEND_API_URL` into Vercel (§3.4).
-- [x] **Production seed strategy chosen and built:** content-only seed (`server/prisma/seed.prod.ts`, `npm run prisma:seed:prod`) + admin-bootstrap CLI (`server/prisma/admin-promote.ts`, `npm run admin:promote -- <username>`). No default passwords ever land in the DB; the owner creates their account via live `/signup` and the agent promotes it from a Railway shell. Both scripts tested locally — seed is idempotent (6/6 promotions already present after re-run), admin:promote grant/revoke/list/error paths all work. Dev seed `seed.ts` kept for local dev only.
-- [ ] **User approval to execute production deployment.** Agent will deploy only after the owner confirms the three prep items above are done. No live-deploy or production-data writes have happened yet.
-- [ ] **(Optional) Push repo to GitHub.** Not done yet. Railway's GitHub-integration flow is the recommended path and requires this first; agent will walk through `gh repo create` with explicit visibility (private) only when asked.
-- [ ] **(Deferred)** proper `/health` + `/ready` endpoints after root-causing the Express 5 / Nest 11 routing issue.
-- [ ] Step 10 — scope TBD; must not start until Step 09 is fully productionized and the owner says so.
+- [ ] **User approval of Step 11** (Wallet & Finance workflow, modals, admin review) and of Step 10 (admin dashboard) before Production Deployment resumes.
+- [ ] **Owner-executed browser steps blocking production deploy** (see `docs/DEPLOYMENT.md` §3): re-issue a fresh GitHub device code (three codes `2204-5EC5`, `45A1-CD82`, `3404-5815` all expired during build sessions) + authorize at https://github.com/login/device, sign up for Neon (§3.1) and copy the pooled + direct URLs, sign up for Railway (§3.2) and paste the Neon URLs plus the other env vars into the Railway dashboard, add `BACKEND_API_URL` to the Vercel project (§3.4).
+- [x] **Production seed strategy chosen and built:** content-only seed (`server/prisma/seed.prod.ts`) + admin-bootstrap CLI (`server/prisma/admin-promote.ts`). No default passwords ever land in the DB.
+- [x] **Playwright installed and configured.** Chromium only. 120 responsive tests across 5 widths; screenshots under `docs/screenshots/` (gitignored).
+- [x] **Promotion CRUD forms built.** Game active-toggle built.
+- [ ] **(Deferred)** proper `/health` + `/ready` endpoints after root-causing the Express 5 / Nest 11 routing issue; Railway healthcheck currently uses `GET /api/v1/promotions` (public, fast, exercises HTTP + Prisma).
+- [ ] **(Deferred)** Game CRUD beyond on/off toggle (create new games, change title/thumbnail, swap provider); match-odds editing (sports data is adapter-sourced, provider needed first); password reset + email verification (no mail gateway configured).
 - [ ] Decide the open questions in §5 (blocking items: market/currency, licensing, age gating).
 - [ ] Obtain source assets (game tiles, provider/payment logos, badges) — see §6.
-- [ ] Step 09 — to be confirmed once Step 08 is approved.
 
 ---
 
@@ -464,6 +611,8 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
 ---
 
 ## 8. Next development action
-**Waiting for user approval of Step 07.** NestJS backend architecture complete with 9 modules, 35+ API endpoints, WebSocket gateway, JWT auth with RBAC, and full documentation. Both frontend and backend compile cleanly.
-
-Once approved, Step 08 begins: PostgreSQL + Prisma database implementation, Redis integration, and data persistence.
+**Step 12 Full-project completion pass complete locally.**
+- 59 Next.js routes build cleanly; 36/36 anonymous probes pass; 31/31 wallet E2E still green; backend builds clean.
+- New: `/fishing` (playable virtual-points canvas game), `/responsible-gaming`, `/notifications` (live backend data), `/referral`, `/forgot-password`; admin `/admin/reports` replaced with a real live-data dashboard.
+- Bangla UI applied across sidebar, topbar, public nav, mobile tabs, footer, profile tabs, wallet labels, and all new pages (~70 % Bangla / 30 % English).
+- Next step: user visual approval of the Bangla layout and the Fishing Game. Then run Playwright visual verification across the 5 configured viewports. Production Deployment still queued.

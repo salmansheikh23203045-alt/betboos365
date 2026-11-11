@@ -2,7 +2,26 @@ import "server-only";
 
 const DEFAULT_BACKEND = "http://localhost:3200/api/v1";
 
+// Emit one loud warning per process if we're in production without the
+// backend URL configured. We don't throw — the graceful-503 wrapper in
+// `backendFetch` keeps the public pages serving, but an admin with the
+// right eyes-on-logs should see that something is off.
+let warned = false;
+function warnOnceIfMisconfigured() {
+  if (warned) return;
+  if (process.env.NODE_ENV === "production" && !process.env.BACKEND_API_URL) {
+    warned = true;
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[tcl11] BACKEND_API_URL is not set in production — falling back to " +
+        DEFAULT_BACKEND +
+        ". Set it in the Vercel dashboard to the Railway backend origin + /api/v1.",
+    );
+  }
+}
+
 export function backendUrl(path: string): string {
+  warnOnceIfMisconfigured();
   const base = process.env.BACKEND_API_URL ?? DEFAULT_BACKEND;
   const trimmed = base.replace(/\/+$/, "");
   return `${trimmed}${path.startsWith("/") ? path : `/${path}`}`;
@@ -25,11 +44,26 @@ export async function backendFetch(
   };
   if (accessToken) finalHeaders.authorization = `Bearer ${accessToken}`;
 
-  return fetch(backendUrl(path), {
-    ...rest,
-    headers: finalHeaders,
-    cache: "no-store",
-  });
+  try {
+    return await fetch(backendUrl(path), {
+      ...rest,
+      headers: finalHeaders,
+      cache: "no-store",
+    });
+  } catch (err) {
+    // ECONNREFUSED / ENOTFOUND / aborted / DNS: the backend is unreachable.
+    // Return a synthetic 503 Response so callers that branch on `.ok` stay on
+    // their existing graceful-failure path instead of taking down the page.
+    const message =
+      err instanceof Error ? err.message : "Backend unreachable";
+    return new Response(
+      JSON.stringify({ message: `Backend unreachable: ${message}` }),
+      {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      },
+    );
+  }
 }
 
 export async function readBackendError(res: Response): Promise<BackendError> {

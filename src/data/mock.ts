@@ -11,23 +11,25 @@ import type {
   Transaction,
   VipStatus,
 } from "@/types";
+import { BN } from "@/i18n/bn";
 
 export const NAV_ITEMS: NavItem[] = [
-  { id: "home", label: "Home", href: "/", icon: "House" },
-  { id: "casino", label: "Casino", href: "/casino", icon: "Dices" },
-  { id: "slots", label: "Slots", href: "/slots", icon: "Gift" },
-  { id: "live-casino", label: "Live Casino", href: "/live-casino", icon: "Tv" },
-  { id: "sports", label: "Sports", href: "/sports", icon: "Trophy" },
-  { id: "esports", label: "Esports", href: "/esports", icon: "Gamepad2" },
-  { id: "promotion", label: "Promotion", href: "/promotion", icon: "Gift" },
+  { id: "home", label: BN.nav.home, href: "/", icon: "House" },
+  { id: "casino", label: BN.nav.casino, href: "/casino", icon: "Dices" },
+  { id: "slots", label: BN.nav.slots, href: "/slots", icon: "Gift" },
+  { id: "live-casino", label: BN.nav.liveCasino, href: "/live-casino", icon: "Tv" },
+  { id: "sports", label: BN.nav.sports, href: "/sports", icon: "Trophy" },
+  { id: "fishing", label: BN.nav.fishing, href: "/fishing", icon: "Flame" },
+  { id: "esports", label: BN.nav.esports, href: "/esports", icon: "Gamepad2" },
+  { id: "promotion", label: BN.nav.promotion, href: "/promotion", icon: "Gift" },
 ];
 
 export const MOBILE_TABS: NavItem[] = [
-  { id: "home", label: "Home", href: "/", icon: "House" },
-  { id: "casino", label: "Casino", href: "/casino", icon: "Dices" },
-  { id: "sports", label: "Sports", href: "/sports", icon: "Trophy" },
-  { id: "promotion", label: "Promotion", href: "/promotion", icon: "Gift" },
-  { id: "profile", label: "Profile", href: "/profile", icon: "User" },
+  { id: "home", label: BN.nav.home, href: "/", icon: "House" },
+  { id: "casino", label: BN.nav.casino, href: "/casino", icon: "Dices" },
+  { id: "sports", label: BN.nav.sports, href: "/sports", icon: "Trophy" },
+  { id: "promotion", label: BN.nav.promotion, href: "/promotion", icon: "Gift" },
+  { id: "profile", label: BN.nav.profile, href: "/profile", icon: "User" },
 ];
 
 export const POPULAR_CATEGORIES = [
@@ -108,30 +110,34 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
-    title: "Quick Links",
+    title: BN.footer.quickLinks,
     links: [
-      { label: "Home", href: "/" },
-      { label: "About Us", href: "/about" },
-      { label: "Blog", href: "/blog" },
-      { label: "FAQ", href: "/faq" },
+      { label: BN.nav.home, href: "/" },
+      { label: BN.nav.about, href: "/about" },
+      { label: BN.nav.blog, href: "/blog" },
+      { label: BN.nav.faq, href: "/faq" },
+      { label: BN.nav.referral, href: "/referral" },
     ],
   },
   {
-    title: "Games",
+    title: BN.footer.games,
     links: [
-      { label: "Casino", href: "/casino" },
-      { label: "Slots", href: "/slots" },
-      { label: "Live Casino", href: "/live-casino" },
-      { label: "Sports", href: "/sports" },
+      { label: BN.nav.casino, href: "/casino" },
+      { label: BN.nav.slots, href: "/slots" },
+      { label: BN.nav.liveCasino, href: "/live-casino" },
+      { label: BN.nav.sports, href: "/sports" },
+      { label: BN.nav.fishing, href: "/fishing" },
     ],
   },
   {
-    title: "Help & Support",
+    title: BN.footer.helpSupport,
     links: [
-      { label: "Contact Us", href: "/contact" },
+      { label: BN.nav.contact, href: "/contact" },
       { label: "Live Chat", href: "/chat" },
-      { label: "Terms & Conditions", href: "/terms" },
-      { label: "Privacy Policy", href: "/privacy" },
+      { label: BN.nav.notifications, href: "/notifications" },
+      { label: BN.nav.terms, href: "/terms" },
+      { label: BN.nav.privacy, href: "/privacy" },
+      { label: BN.nav.responsibleGaming, href: "/responsible-gaming" },
     ],
   },
 ];
@@ -145,8 +151,8 @@ export const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export const WHY_CHOOSE_FEATURES = [
-  { id: "safe", label: "Safe & Secure", icon: "ShieldCheck" },
-  { id: "fast", label: "Fast Deposit & Withdraw", icon: "Zap" },
-  { id: "support", label: "24/7 Support", icon: "Headset" },
-  { id: "bonus", label: "Daily Bonus", icon: "Gift" },
+  { id: "safe", label: "নিরাপদ ও সুরক্ষিত", icon: "ShieldCheck" },
+  { id: "fast", label: "দ্রুত ডিপোজিট ও উত্তোলন", icon: "Zap" },
+  { id: "support", label: "২৪/৭ সাপোর্ট", icon: "Headset" },
+  { id: "bonus", label: "দৈনিক বোনাস", icon: "Gift" },
 ] as const;

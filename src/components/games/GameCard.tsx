@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { AssetPlaceholder } from "@/components/ui/AssetPlaceholder";
 import { Pill } from "@/components/ui/Pill";
 import { cn } from "@/lib/cn";
+import { resolveGameArt } from "@/lib/gameArt";
+import { BrandedTile } from "./BrandedTile";
 import type { Game } from "@/types";
 
 export type GameCardVariant = "featured" | "category";
@@ -21,9 +22,16 @@ const ASPECT: Record<GameCardVariant, string> = {
 /**
  * GameCard — artwork tile with red glowing border, optional FREE badge,
  * and a title / provider label along the bottom edge.
- * Hover: red glow intensifies and a light sheen sweeps across (transform only).
+ *
+ * Artwork resolution order (same on every viewport):
+ *   1. `game.artSrc` if the data file provided one.
+ *   2. Central `resolveGameArt(game.id)` mapping.
+ *   3. BrandedTile — procedurally-drawn casino artwork in the TCL palette.
+ * There is no path that leaves the tile blank or shows an "Asset pending" box.
  */
 export function GameCard({ game, variant = "featured", className }: GameCardProps) {
+  const src = game.artSrc ?? resolveGameArt(game.id);
+
   return (
     <article
       className={cn(
@@ -33,18 +41,16 @@ export function GameCard({ game, variant = "featured", className }: GameCardProp
         className,
       )}
     >
-      {game.artSrc ? (
+      {src ? (
         <Image
-          src={game.artSrc}
+          src={src}
           alt={game.title}
           fill
-          sizes="(min-width: 1024px) 140px, 33vw"
+          sizes="(min-width: 1024px) 180px, 33vw"
           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
       ) : (
-        <div className="absolute inset-0 p-1.5 max-lg:hidden">
-          <AssetPlaceholder label={`${game.title} artwork`} />
-        </div>
+        <BrandedTile title={game.title} gameId={game.id} />
       )}
 
       {game.isFree ? (

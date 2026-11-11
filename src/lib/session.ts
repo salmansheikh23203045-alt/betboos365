@@ -47,7 +47,12 @@ async function fetchMe(accessToken: string): Promise<SessionUser | null> {
 /**
  * Returns the authenticated session from the current request's HttpOnly
  * cookies, refreshing transparently if the access token has expired. Call
- * from server components, route handlers, and server actions only.
+ * from server components, route handlers, and server actions.
+ *
+ * NOTE: Server Components cannot mutate cookies. When called from a Server
+ * Component, this function is strictly read-only and never calls cookieStore.set
+ * or cookieStore.delete. Cookie refresh and cleanup is handled in the Next.js
+ * Proxy and Route Handlers.
  */
 export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
@@ -63,14 +68,9 @@ export async function getSession(): Promise<SessionUser | null> {
 
   const refreshed = await tryRefresh(rt);
   if (!refreshed) {
-    // The refresh token is stale/revoked. Wipe cookies so subsequent
-    // requests aren't stuck trying it forever.
-    cookieStore.delete(ACCESS_COOKIE);
-    cookieStore.delete(REFRESH_COOKIE);
     return null;
   }
 
-  setAuthCookies(cookieStore, refreshed);
   return refreshed.user;
 }
 
@@ -95,10 +95,18 @@ export async function withAuthedBackend<T>(
     if (!rt) return res;
     const refreshed = await tryRefresh(rt);
     if (!refreshed) {
-      clearAuthCookies(cookieStore);
+      try {
+        clearAuthCookies(cookieStore);
+      } catch {
+        /* ignore in contexts that do not support cookie mutation */
+      }
       return res;
     }
-    setAuthCookies(cookieStore, refreshed);
+    try {
+      setAuthCookies(cookieStore, refreshed);
+    } catch {
+      /* ignore in contexts that do not support cookie mutation */
+    }
     at = refreshed.accessToken;
     return perform(refreshed.accessToken);
   }
@@ -107,10 +115,18 @@ export async function withAuthedBackend<T>(
     if (!rt) return { ok: false, status: 401, error: "Not authenticated" };
     const refreshed = await tryRefresh(rt);
     if (!refreshed) {
-      clearAuthCookies(cookieStore);
+      try {
+        clearAuthCookies(cookieStore);
+      } catch {
+        /* ignore in contexts that do not support cookie mutation */
+      }
       return { ok: false, status: 401, error: "Session expired" };
     }
-    setAuthCookies(cookieStore, refreshed);
+    try {
+      setAuthCookies(cookieStore, refreshed);
+    } catch {
+      /* ignore in contexts that do not support cookie mutation */
+    }
     at = refreshed.accessToken;
   }
 

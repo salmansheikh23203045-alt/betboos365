@@ -422,3 +422,16 @@
     transform: none;
   }
 }
+
+/* ============================================================================
+   Admin shell — hide the public chrome (headers, promo marquee, footer and
+   mobile bottom nav) whenever any admin route mounts <AdminShell>. Keyed by
+   the [data-admin-shell] marker; applied via :has() so we don't need to
+   split the root layout into route groups.
+   ============================================================================ */
+body:has([data-admin-shell]) [data-chrome="public"] {
+  display: none !important;
+}
+body:has([data-admin-shell]) {
+  padding-bottom: 0 !important;
+}

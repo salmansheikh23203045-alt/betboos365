@@ -61,6 +61,34 @@ enum AuditAction {
   ADMIN_ACTION
   SUPPORT_TICKET
   SETTINGS_CHANGE
+  DEPOSIT_SUBMITTED
+  DEPOSIT_APPROVED
+  DEPOSIT_REJECTED
+  WITHDRAWAL_SUBMITTED
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
+  WITHDRAWAL_COMPLETED
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum PaymentType {
+  SEND_MONEY
+  CASH_OUT
+}
+
+enum WalletLedgerType {
+  DEPOSIT_CREDIT
+  WITHDRAWAL_RESERVE
+  WITHDRAWAL_RELEASE
+  WITHDRAWAL_DEBIT
+  ADJUSTMENT_CREDIT
+  ADJUSTMENT_DEBIT
 }
 
 enum GameCategory {
@@ -111,6 +139,11 @@ model User {
   auditLogs         AuditLog[]
   userPromotions    UserPromotion[]
   gameLaunches      GameLaunch[]
+  wallet            Wallet?
+  depositRequests   DepositRequest[]  @relation("UserDeposits")
+  withdrawalRequests WithdrawalRequest[] @relation("UserWithdrawals")
+  processedDeposits DepositRequest[]  @relation("DepositProcessor")
+  processedWithdrawals WithdrawalRequest[] @relation("WithdrawalProcessor")
 
   @@index([username])
   @@index([email])
@@ -419,4 +452,116 @@ model ContactSubmission {
   @@index([email])
   @@index([createdAt])
   @@map("contact_submissions")
+}
+
+// ──────────────────────────────────────────────
+// Wallet & Finance
+// ──────────────────────────────────────────────
+
+model PaymentProvider {
+  id          String   @id @default(uuid())
+  code        String   @unique @db.VarChar(16)
+  name        String
+  logoUrl     String?  @map("logo_url")
+  brandColor  String   @default("#e2136c") @map("brand_color") @db.VarChar(16)
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  deposits    DepositRequest[]
+  withdrawals WithdrawalRequest[]
+
+  @@index([isActive])
+  @@map("payment_providers")
+}
+
+model Wallet {
+  id               String   @id @default(uuid())
+  userId           String   @unique @map("user_id")
+  currency         String   @default("BDT") @db.VarChar(3)
+  availableBalance Decimal  @default(0) @map("available_balance") @db.Decimal(14, 2)
+  reservedBalance  Decimal  @default(0) @map("reserved_balance") @db.Decimal(14, 2)
+  version          Int      @default(0)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id             String           @id @default(uuid())
+  walletId       String           @map("wallet_id")
+  userId         String           @map("user_id")
+  type           WalletLedgerType
+  amount         Decimal          @db.Decimal(14, 2)
+  balanceAfter   Decimal          @map("balance_after") @db.Decimal(14, 2)
+  referenceType  String?          @map("reference_type") @db.VarChar(32)
+  referenceId    String?          @map("reference_id")
+  description    String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([userId, createdAt])
+  @@index([referenceType, referenceId])
+  @@map("wallet_transactions")
+}
+
+model DepositRequest {
+  id                   String            @id @default(uuid())
+  userId               String            @map("user_id")
+  providerId           String            @map("provider_id")
+  paymentType          PaymentType       @map("payment_type")
+  amount               Decimal           @db.Decimal(14, 2)
+  currency             String            @default("BDT") @db.VarChar(3)
+  agentNumber          String            @map("agent_number") @db.VarChar(32)
+  transactionReference String            @map("transaction_reference") @db.VarChar(64)
+  status               TransactionStatus @default(PENDING)
+  adminNote            String?           @map("admin_note")
+  processedById        String?           @map("processed_by_id")
+  processedAt          DateTime?         @map("processed_at")
+  idempotencyKey       String            @unique @map("idempotency_key")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  user        User            @relation("UserDeposits", fields: [userId], references: [id], onDelete: Cascade)
+  provider    PaymentProvider @relation(fields: [providerId], references: [id])
+  processedBy User?           @relation("DepositProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([providerId])
+  @@map("deposit_requests")
+}
+
+model WithdrawalRequest {
+  id              String            @id @default(uuid())
+  userId          String            @map("user_id")
+  providerId      String            @map("provider_id")
+  receivingPhone  String            @map("receiving_phone") @db.VarChar(20)
+  amount          Decimal           @db.Decimal(14, 2)
+  currency        String            @default("BDT") @db.VarChar(3)
+  status          TransactionStatus @default(PENDING)
+  adminNote       String?           @map("admin_note")
+  payoutReference String?           @map("payout_reference") @db.VarChar(64)
+  processedById   String?           @map("processed_by_id")
+  processedAt     DateTime?         @map("processed_at")
+  completedAt     DateTime?         @map("completed_at")
+  reservationTxId String?           @unique @map("reservation_tx_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  user        User            @relation("UserWithdrawals", fields: [userId], references: [id], onDelete: Cascade)
+  provider    PaymentProvider @relation(fields: [providerId], references: [id])
+  processedBy User?           @relation("WithdrawalProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([providerId])
+  @@map("withdrawal_requests")
 }
