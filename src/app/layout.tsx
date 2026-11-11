@@ -46,14 +46,24 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
       {/* Mobile: clearance for the fixed 64px bottom nav sits after the footer, so the nav never covers the legal bar. */}
+      {/* Public chrome (DesktopHeader, PromoMarquee, MobileHeader, Footer,
+          MobileBottomNavigation) is tagged `data-chrome="public"`; the
+          admin shell sets `data-admin-shell`, and a global CSS rule in
+          globals.css hides public chrome when an admin shell is present
+          anywhere in the body. Keeps the public layout untouched when
+          nothing admin is mounted. */}
       <body className="flex min-h-dvh flex-col max-lg:pb-16">
         <AuthProvider initialUser={user}>
-          <DesktopHeader navItems={NAV_ITEMS} />
-          <PromoMarquee />
-          <MobileHeader />
+          <div data-chrome="public" className="contents">
+            <DesktopHeader navItems={NAV_ITEMS} />
+            <PromoMarquee />
+            <MobileHeader />
+          </div>
           <main className="flex-1">{children}</main>
-          <Footer />
-          <MobileBottomNavigation items={MOBILE_TABS} />
+          <div data-chrome="public" className="contents">
+            <Footer />
+            <MobileBottomNavigation items={MOBILE_TABS} />
+          </div>
         </AuthProvider>
       </body>
     </html>

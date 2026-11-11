@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { AssetPlaceholder } from "@/components/ui/AssetPlaceholder";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { ICONS } from "@/lib/icons";
@@ -12,9 +11,9 @@ export interface PromotionBannerProps {
   variant?: "hero" | "compact";
   /** "gold-white": gold title + white highlight. "gold-gold": both gold (reference: "Sports Betting"). */
   tone?: "gold-white" | "gold-gold";
-  /** Artwork path. Until supplied, a labelled placeholder is shown. */
+  /** Artwork path. Falls back to an intentional branded SVG when absent. */
   artSrc?: string;
-  /** Name of the missing artwork, shown in the placeholder. */
+  /** Accessibility hint describing the artwork slot. */
   artLabel: string;
   className?: string;
 }
@@ -71,11 +70,70 @@ export function PromotionBanner({
       <div className="absolute inset-y-0 right-0 w-[45%] p-2">
         {artSrc ? (
           // Artwork is decorative: the banner copy carries the meaning.
-          <Image src={artSrc} alt="" fill sizes="(min-width: 1024px) 330px, 45vw" className="object-contain object-right" />
+          <Image
+            src={artSrc}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 330px, 45vw"
+            className="object-contain object-right"
+          />
         ) : (
-          <AssetPlaceholder label={artLabel} />
+          // Intentional branded SVG — never a labelled placeholder.
+          <BannerArt label={artLabel} />
         )}
       </div>
     </NeonCard>
+  );
+}
+
+function BannerArt({ label }: { label: string }) {
+  return (
+    <div className="relative size-full" aria-label={label} role="img">
+      <svg
+        viewBox="0 0 200 140"
+        preserveAspectRatio="xMidYMid slice"
+        className="h-full w-full"
+      >
+        <defs>
+          <radialGradient id="pb-rad" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stopColor="#f1bf3d" stopOpacity="0.65" />
+            <stop offset="55%" stopColor="#c21e1e" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#1a0505" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="pb-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f6d968" />
+            <stop offset="0.5" stopColor="#f1bf3d" />
+            <stop offset="1" stopColor="#b7892a" />
+          </linearGradient>
+        </defs>
+        <rect width="200" height="140" fill="url(#pb-rad)" />
+        <g opacity="0.35" stroke="url(#pb-gold)" strokeWidth="0.6">
+          {Array.from({ length: 14 }).map((_, i) => {
+            const a = (i / 14) * Math.PI * 2;
+            return (
+              <line
+                key={i}
+                x1="130"
+                y1="70"
+                x2={130 + Math.cos(a) * 90}
+                y2={70 + Math.sin(a) * 90}
+              />
+            );
+          })}
+        </g>
+        <circle cx="130" cy="70" r="30" fill="#0a0a0a" stroke="url(#pb-gold)" strokeWidth="2" />
+        <text
+          x="130"
+          y="80"
+          textAnchor="middle"
+          fontSize="30"
+          fontFamily="var(--font-anton, sans-serif)"
+          fontWeight="700"
+          fill="url(#pb-gold)"
+        >
+          ★
+        </text>
+      </svg>
+    </div>
   );
 }

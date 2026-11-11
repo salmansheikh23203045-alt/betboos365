@@ -1,6 +1,16 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { PromotionsService } from './promotions.service';
-import { CreatePromotionDto } from './dto';
+import { CreatePromotionDto, UpdatePromotionDto } from './dto';
 import { Public, Roles } from '../common/decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -12,8 +22,10 @@ export class PromotionsController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.promotionsService.findAll();
+  findAll(@Query('includeInactive') includeInactive?: string) {
+    // Admins hitting /promotions?includeInactive=true see drafts too. The
+    // query flag is not a security gate (data is public), just a filter.
+    return this.promotionsService.findAll(includeInactive !== 'true');
   }
 
   @Public()
@@ -27,5 +39,19 @@ export class PromotionsController {
   @Roles(Role.ADMIN)
   create(@Body() dto: CreatePromotionDto) {
     return this.promotionsService.create(dto);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  update(@Param('id') id: string, @Body() dto: UpdatePromotionDto) {
+    return this.promotionsService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  remove(@Param('id') id: string) {
+    return this.promotionsService.remove(id);
   }
 }

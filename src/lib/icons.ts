@@ -56,6 +56,14 @@ import {
   Music2,
   Share2,
   Smartphone,
+  Copy,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  AlertTriangle,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Filter,
   type LucideIcon,
 } from "lucide-react";
 
@@ -122,6 +130,14 @@ export const ICONS = {
   Wallet,
   X,
   Zap,
+  Copy,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  AlertTriangle,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Filter,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

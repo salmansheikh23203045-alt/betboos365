@@ -1,16 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { VIPProgressCard } from "@/components/vip/VIPProgressCard";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ICONS } from "@/lib/icons";
 import { cn } from "@/lib/cn";
-import { VIP_STATUS, TRANSACTIONS } from "@/data/mock";
+import { VIP_STATUS } from "@/data/mock";
 import type { SessionUser } from "@/components/auth/AuthProvider";
+import { DepositModal } from "@/components/wallet/DepositModal";
+import { WithdrawModal } from "@/components/wallet/WithdrawModal";
+import { TransactionList } from "@/components/wallet/TransactionList";
+import { fetchMyWallet } from "@/lib/wallet-client";
+import type { WalletView } from "@/types/wallet";
 
-const TABS = ["Overview", "Transactions", "Settings"] as const;
+import { BN } from "@/i18n/bn";
+
+const TABS = [
+  { key: "Overview" as const, label: BN.profile.overview },
+  { key: "Transactions" as const, label: BN.profile.transactions },
+  { key: "Settings" as const, label: BN.profile.settings },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
 
 export interface ProfileData {
   userId: string;
@@ -31,37 +44,106 @@ function formatMoney(value: number, currency: string) {
   return `${currency} ${value.toFixed(2)}`;
 }
 
-function OverviewTab({ profile }: { profile: ProfileData | null }) {
-  // VIP progress stays on mock data — there is no backend endpoint for tier
-  // progress/points yet. Quick stats come from the real profile row.
-  const currency = profile?.preferredCurrency ?? "USD";
+function WalletBalanceCard({
+  wallet,
+  loading,
+  onDeposit,
+  onWithdraw,
+}: {
+  wallet: WalletView | null;
+  loading: boolean;
+  onDeposit: () => void;
+  onWithdraw: () => void;
+}) {
+  return (
+    <NeonCard className="space-y-4">
+      <SectionHeading title={BN.nav.deposit + " / " + BN.nav.withdraw} icon="Wallet" />
+      {loading && !wallet ? (
+        <div className="flex items-center justify-center py-6 text-tcl-muted">
+          <ICONS.Loader2 aria-hidden="true" className="size-5 animate-spin" />
+        </div>
+      ) : wallet ? (
+        <div className="space-y-3">
+          <div className="rounded-lg border border-tcl-gold/40 bg-gradient-to-b from-tcl-gold/10 to-transparent p-4">
+            <p className="text-caption uppercase tracking-wider text-tcl-muted">
+              {BN.wallet.availableBalance}
+            </p>
+            <p className="font-display text-heading-lg uppercase text-tcl-gold leading-none">
+              {wallet.currency} {wallet.availableBalance.toLocaleString()}
+            </p>
+            {wallet.reservedBalance > 0 ? (
+              <p className="mt-1 text-[11px] text-tcl-muted">
+                {wallet.currency} {wallet.reservedBalance.toLocaleString()} পেন্ডিং উত্তোলনের জন্য সংরক্ষিত।
+              </p>
+            ) : null}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <PrimaryButton onClick={onDeposit} size="md" icon="ArrowDownCircle" fullWidth>
+              {BN.nav.deposit}
+            </PrimaryButton>
+            <SecondaryButton onClick={onWithdraw} size="md" icon="ArrowUpCircle" fullWidth>
+              {BN.nav.withdraw}
+            </SecondaryButton>
+          </div>
+        </div>
+      ) : (
+        <p className="text-caption text-tcl-muted">
+          Wallet unavailable — reload to retry.
+        </p>
+      )}
+    </NeonCard>
+  );
+}
+
+function OverviewTab({
+  profile,
+  wallet,
+  walletLoading,
+  onDeposit,
+  onWithdraw,
+}: {
+  profile: ProfileData | null;
+  wallet: WalletView | null;
+  walletLoading: boolean;
+  onDeposit: () => void;
+  onWithdraw: () => void;
+}) {
+  const currency = wallet?.currency ?? profile?.preferredCurrency ?? "BDT";
   const stats = [
     {
-      label: "Total Deposits",
+      label: BN.profile.totalDeposits,
       value: profile ? formatMoney(profile.totalDeposits, currency) : "—",
-      icon: "Wallet" as const,
+      icon: "ArrowDownCircle" as const,
     },
     {
-      label: "Total Withdrawals",
+      label: BN.profile.totalWithdrawals,
       value: profile ? formatMoney(profile.totalWithdrawals, currency) : "—",
-      icon: "ArrowRight" as const,
+      icon: "ArrowUpCircle" as const,
     },
     {
-      label: "Active Bonuses",
+      label: BN.profile.activeBonuses,
       value: profile ? String(profile.activeBonuses) : "—",
       icon: "Gift" as const,
     },
     {
-      label: "Games Played",
+      label: BN.profile.gamesPlayed,
       value: profile ? String(profile.gamesPlayed) : "—",
       icon: "Gamepad2" as const,
     },
   ];
   return (
     <div className="animate-tab-fade grid items-start gap-4 lg:grid-cols-2">
-      <VIPProgressCard status={VIP_STATUS} />
+      <div className="space-y-4">
+        <WalletBalanceCard
+          wallet={wallet}
+          loading={walletLoading}
+          onDeposit={onDeposit}
+          onWithdraw={onWithdraw}
+        />
+        <VIPProgressCard status={VIP_STATUS} />
+      </div>
       <NeonCard className="space-y-3">
-        <SectionHeading title="Quick Stats" icon="TrendingUp" />
+        <SectionHeading title={BN.profile.quickStats} icon="TrendingUp" />
         <div className="grid grid-cols-2 gap-3">
           {stats.map((stat) => {
             const Icon = ICONS[stat.icon];
@@ -79,62 +161,11 @@ function OverviewTab({ profile }: { profile: ProfileData | null }) {
         </div>
         {!profile ? (
           <p className="pt-1 text-caption text-tcl-muted">
-            Live stats unavailable — showing placeholders. Reload to retry.
+            লাইভ ডেটা লোড হয়নি — প্লেসহোল্ডার দেখানো হচ্ছে। রিলোড করে আবার চেষ্টা করুন।
           </p>
         ) : null}
       </NeonCard>
     </div>
-  );
-}
-
-function TransactionsTab() {
-  // There is no transactions endpoint on the backend yet; this view stays
-  // on mock data per the Step 09 scope note.
-  return (
-    <NeonCard className="animate-tab-fade space-y-3">
-      <SectionHeading title="Transaction History" icon="Clock" />
-      <p className="text-caption text-tcl-muted">
-        Sample history shown — a live transactions endpoint is planned for a later step.
-      </p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-tcl-border-muted text-caption uppercase text-tcl-muted">
-              <th className="pb-2 pr-4 font-semibold">ID</th>
-              <th className="pb-2 pr-4 font-semibold">Type</th>
-              <th className="pb-2 pr-4 font-semibold">Amount</th>
-              <th className="pb-2 font-semibold">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {TRANSACTIONS.map((tx) => (
-              <tr
-                key={tx.id}
-                className="border-b border-tcl-border-muted/50 transition-colors hover:bg-tcl-surface-2/50 last:border-0"
-              >
-                <td className="py-2.5 pr-4 text-tcl-muted">{tx.userId}</td>
-                <td className="py-2.5 pr-4 text-tcl-white">{tx.type}</td>
-                <td className="py-2.5 pr-4 font-semibold text-tcl-gold">
-                  {tx.currency} {tx.amount.toFixed(2)}
-                </td>
-                <td className="py-2.5">
-                  <span
-                    className={cn(
-                      "rounded-pill px-2 py-0.5 text-[10px] font-bold uppercase",
-                      tx.status === "SUCCESS" || tx.status === "WIN"
-                        ? "bg-tcl-success/20 text-tcl-success"
-                        : "bg-tcl-red/20 text-tcl-red-bright",
-                    )}
-                  >
-                    {tx.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </NeonCard>
   );
 }
 
@@ -272,7 +303,28 @@ export function ProfileClient({
   user: SessionUser;
   profile: ProfileData | null;
 }) {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [tab, setTab] = useState<TabKey>("Overview");
+  const [wallet, setWallet] = useState<WalletView | null>(null);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [txRefresh, setTxRefresh] = useState(0);
+
+  const loadWallet = useCallback(async () => {
+    setWalletLoading(true);
+    const res = await fetchMyWallet();
+    if (res.ok) setWallet(res.data);
+    setWalletLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadWallet();
+  }, [loadWallet]);
+
+  const handleSubmitted = () => {
+    setTxRefresh((n) => n + 1);
+    loadWallet();
+  };
 
   return (
     <div className="animate-fade-in-up mx-auto max-w-[1280px] space-y-6 px-4 py-6 lg:px-6">
@@ -294,22 +346,42 @@ export function ProfileClient({
       <div className="flex gap-2 border-b border-tcl-border-muted pb-px">
         {TABS.map((t) => (
           <button
-            key={t}
+            key={t.key}
             type="button"
-            onClick={() => setTab(t)}
+            onClick={() => setTab(t.key)}
             className={cn(
               "border-b-2 px-4 pb-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer",
-              t === tab ? "border-tcl-gold text-tcl-gold" : "border-transparent text-tcl-muted hover:text-tcl-white",
+              t.key === tab ? "border-tcl-gold text-tcl-gold" : "border-transparent text-tcl-muted hover:text-tcl-white",
             )}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
 
-      {tab === "Overview" && <OverviewTab key="overview" profile={profile} />}
-      {tab === "Transactions" && <TransactionsTab key="transactions" />}
+      {tab === "Overview" && (
+        <OverviewTab
+          key="overview"
+          profile={profile}
+          wallet={wallet}
+          walletLoading={walletLoading}
+          onDeposit={() => setDepositOpen(true)}
+          onWithdraw={() => setWithdrawOpen(true)}
+        />
+      )}
+      {tab === "Transactions" && <TransactionList key="transactions" refreshKey={txRefresh} />}
       {tab === "Settings" && <SettingsTab key="settings" user={user} profile={profile} />}
+
+      <DepositModal
+        open={depositOpen}
+        onClose={() => setDepositOpen(false)}
+        onSubmitted={handleSubmitted}
+      />
+      <WithdrawModal
+        open={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+        onSubmitted={handleSubmitted}
+      />
     </div>
   );
 }
