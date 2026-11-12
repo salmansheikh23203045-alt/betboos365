@@ -1,0 +1,10 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128/v1",
+    "ANTHROPIC_MODEL": "my-combo",
+    "ANTHROPIC_API_KEY": "sk-2db0baf10df1af04-bc852c-07c0557f"
+  }
+}
+
+
+
