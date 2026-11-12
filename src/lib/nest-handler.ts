@@ -144,17 +144,27 @@ export async function handleNestRequest(request: Request): Promise<Response> {
   const { res, promise } = createCapturingResponse(nodeReq);
 
   // Express app is callable (req, res, next)
-  expressApp(nodeReq, res, (err: unknown) => {
-    if (err) {
-      res.statusCode = 500;
-      res.end(
-        JSON.stringify({
-          success: false,
-          message: err instanceof Error ? err.message : "Internal error",
-        }),
-      );
-    }
-  });
+  try {
+    expressApp(nodeReq, res, (err: unknown) => {
+      if (err) {
+        res.statusCode = 500;
+        res.end(
+          JSON.stringify({
+            success: false,
+            message: err instanceof Error ? err.message : "Internal error",
+          }),
+        );
+      }
+    });
+  } catch (err) {
+    res.statusCode = 500;
+    res.end(
+      JSON.stringify({
+        success: false,
+        message: err instanceof Error ? err.message : "Internal error",
+      }),
+    );
+  }
 
   return promise;
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { handleNestRequest } from "./nest-handler";
 
 const DEFAULT_BACKEND = "http://localhost:3200/api/v1";
 
@@ -44,6 +45,29 @@ export async function backendFetch(
     ...((headers as Record<string, string>) ?? {}),
   };
   if (accessToken) finalHeaders.authorization = `Bearer ${accessToken}`;
+
+  // If BACKEND_API_URL is not set (e.g. on Vercel serverless runtime),
+  // invoke NestJS directly in-process via handleNestRequest to avoid
+  // self-referential HTTP network fetching (which fails due to Vercel Auth/timeouts).
+  if (!process.env.BACKEND_API_URL) {
+    try {
+      const fullUrl = `http://localhost/api/v1${path.startsWith("/") ? path : `/${path}`}`;
+      const req = new Request(fullUrl, {
+        ...rest,
+        headers: finalHeaders,
+      });
+      return await handleNestRequest(req);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "In-process backend error";
+      return new Response(
+        JSON.stringify({ message: `Backend error: ${message}` }),
+        {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        },
+      );
+    }
+  }
 
   try {
     return await fetch(backendUrl(path), {
