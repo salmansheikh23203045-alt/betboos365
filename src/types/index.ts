@@ -1,4 +1,4 @@
-/* Shared TypeScript interfaces for the TCL11 UI.
+/* Shared TypeScript interfaces for the BetBoos365 UI.
  * Mock-data shapes only. No backend contract is implied until Step 06. */
 
 import type { IconName } from "@/lib/icons";
@@ -72,6 +72,8 @@ export interface HeroSlide {
   alt: string;
   /** CSS object-position per layout, tuned so the subject stays visible when the image is cropped. */
   objectPosition: { desktop: string; mobile: string };
+  /** When true, suppresses the global welcome bonus text overlay for self-contained banners. */
+  hideOverlay?: boolean;
 }
 
 export interface FooterLink {

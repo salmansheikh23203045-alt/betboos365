@@ -7,6 +7,9 @@ import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { ICONS } from "@/lib/icons";
 import { cn } from "@/lib/cn";
 import type { AdminUserRow } from "./page";
+import { WalletPanel } from "@/components/admin/WalletPanel";
+
+const STAFF = ["super_admin", "admin", "sub_admin", "agent", "moderator"];
 
 type RoleSlug = "user" | "vip" | "moderator" | "admin" | "super_admin";
 const ROLE_CHOICES: Array<{ value: RoleSlug; label: string; superOnly?: boolean }> = [
@@ -22,12 +25,17 @@ export function UserManagementClient({
   meta,
   currentUserId,
   isSuperAdmin,
+  canViewWallet = false,
+  canAdjustWallet = false,
 }: {
   rows: AdminUserRow[];
   meta: { page: number; limit: number; total: number; totalPages: number };
   currentUserId: string;
   isSuperAdmin: boolean;
+  canViewWallet?: boolean;
+  canAdjustWallet?: boolean;
 }) {
+  const [walletFor, setWalletFor] = useState<AdminUserRow | null>(null);
   const router = useRouter();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive" | "admin">("all");
@@ -79,20 +87,15 @@ export function UserManagementClient({
       setStatus({ kind: "err", msg: "You cannot deactivate yourself." });
       return;
     }
-    if (!u.isActive) {
-      // Reactivate not yet implemented on the backend.
-      setStatus({ kind: "err", msg: "Reactivation requires a backend endpoint that doesn't exist yet." });
-      return;
-    }
     setStatus({ kind: null });
     setPendingId(u.id);
     try {
-      const res = await fetch(`/api/admin/users/${u.id}/deactivate`, { method: "PATCH" });
+      const res = await fetch(`/api/admin/users/${u.id}/${u.isActive ? "deactivate" : "activate"}`, { method: "PATCH" });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({ message: "Failed" }))) as { message?: string };
         setStatus({ kind: "err", msg: body.message ?? `Failed (${res.status})` });
       } else {
-        setStatus({ kind: "ok", msg: `Deactivated @${u.username}` });
+        setStatus({ kind: "ok", msg: `${u.isActive ? "Deactivated" : "Reactivated"} @${u.username}` });
         startTransition(() => router.refresh());
       }
     } catch {
@@ -233,17 +236,31 @@ export function UserManagementClient({
                         <button
                           type="button"
                           onClick={() => toggleActive(u)}
-                          disabled={pendingId === u.id || isSelf || isSuperOnOther || !u.isActive}
+                          disabled={pendingId === u.id || isSelf || isSuperOnOther}
                           title={
                             isSelf ? "You cannot deactivate yourself"
                             : isSuperOnOther ? "Only Super Admin can touch Super Admin accounts"
-                            : !u.isActive ? "Reactivation endpoint not implemented yet"
+                            : !u.isActive ? "Reactivate this account"
                             : "Deactivate this account"
                           }
-                          className="rounded-md border border-tcl-red/40 bg-tcl-red/10 px-2 py-1 text-[11px] font-semibold text-tcl-red-bright hover:border-tcl-red/70 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          className={cn(
+                            "rounded-md border px-2 py-1 text-[11px] font-semibold disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed",
+                            u.isActive
+                              ? "border-tcl-red/40 bg-tcl-red/10 text-tcl-red-bright hover:border-tcl-red/70"
+                              : "border-tcl-success/40 bg-tcl-success/10 text-tcl-success hover:border-tcl-success/70",
+                          )}
                         >
-                          {u.isActive ? "Deactivate" : "Inactive"}
+                          {u.isActive ? "Deactivate" : "Reactivate"}
                         </button>
+                        {canViewWallet && !u.roles.some((r) => STAFF.includes(r)) ? (
+                          <button
+                            type="button"
+                            onClick={() => setWalletFor(u)}
+                            className="rounded-md border border-tcl-gold/40 bg-tcl-gold/10 px-2 py-1 text-[11px] font-semibold text-tcl-gold hover:border-tcl-gold/70 cursor-pointer"
+                          >
+                            Wallet
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -280,6 +297,14 @@ export function UserManagementClient({
           </div>
         ) : null}
       </NeonCard>
+      {walletFor ? (
+        <WalletPanel
+          userId={walletFor.id}
+          username={walletFor.username}
+          canAdjust={canAdjustWallet && walletFor.id !== currentUserId}
+          onClose={() => setWalletFor(null)}
+        />
+      ) : null}
     </div>
   );
 }

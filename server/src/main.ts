@@ -5,10 +5,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import { globalValidationPipe } from './common/pipes/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -28,10 +24,6 @@ async function bootstrap() {
 
   const corsOrigins = config.get<string[]>('cors.origins') ?? ['http://localhost:3000'];
   app.enableCors({ origin: corsOrigins, credentials: true });
-
-  app.useGlobalPipes(globalValidationPipe);
-  app.useGlobalFilters(new GlobalExceptionFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
 
   // Swagger is useful locally and in dev/staging but we don't want it on
   // the open internet by default. Gate it behind an explicit opt-in.
@@ -54,9 +46,7 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   logger.log(`Server running on port ${port} (env=${nodeEnv})`);
   logger.log(`API prefix: /${apiPrefix}`);
-  // Platform health probes hit /api/v1/promotions — a public, fast GET that
-  // exercises the HTTP layer + Prisma together. See docs/DEPLOYMENT.md.
-  logger.log(`Healthcheck: /${apiPrefix}/promotions`);
+  logger.log(`Healthcheck: /${apiPrefix}/health`);
   if (exposeSwagger) logger.log(`Swagger:    /${apiPrefix}/docs`);
 }
 

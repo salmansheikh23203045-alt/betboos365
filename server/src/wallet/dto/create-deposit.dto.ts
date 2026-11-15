@@ -2,6 +2,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Matches,
   Max,
@@ -33,4 +34,14 @@ export class CreateDepositDto {
     message: 'Transaction reference must be alphanumeric',
   })
   transactionReference!: string;
+
+  /**
+   * Optional: the number the money was sent from. Deposits may come from any
+   * mobile number, so this is never compared with the registered number; it
+   * only helps staff match the payment. Must be a valid Bangladeshi mobile.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  senderPhone?: string;
 }

@@ -35,6 +35,8 @@ export interface DepositTransaction {
   currency: string;
   agentNumber: string;
   transactionReference: string;
+  /** Number the deposit was sent from (any mobile number), if the player gave one. */
+  senderPhone?: string | null;
   status: TransactionStatus;
   adminNote: string | null;
   processedAt: string | null;
@@ -60,11 +62,24 @@ export interface WithdrawalTransaction {
 
 export type WalletTransaction = DepositTransaction | WithdrawalTransaction;
 
+export interface StaffRef {
+  id: string;
+  username: string;
+}
 export interface AdminDepositRow extends DepositTransaction {
-  user: { id: string; username: string } | null;
+  user: StaffRef | null;
+  /** Staff member who approved or rejected it. */
+  processedBy?: StaffRef | null;
 }
 export interface AdminWithdrawalRow extends WithdrawalTransaction {
-  user: { id: string; username: string } | null;
+  user: StaffRef | null;
+  /** The requester is an agent withdrawing from their own agent wallet. */
+  requesterIsAgent?: boolean;
+  processedBy?: StaffRef | null;
+  completedBy?: StaffRef | null;
+  /** Agent the payout is assigned to. */
+  assignedAgent?: StaffRef | null;
+  assignedAt?: string | null;
 }
 
 export interface PageMeta {

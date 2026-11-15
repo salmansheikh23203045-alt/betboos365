@@ -39,3 +39,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /docs/screenshots/
+
+# Database backups contain user data and password hashes — never commit.
+/backups/

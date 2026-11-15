@@ -1,8 +1,8 @@
 {
-  "name": "tcl11-server",
+  "name": "betboos365-server",
   "version": "0.1.0",
   "private": true,
-  "description": "TCL11 Backend — NestJS REST + WebSocket API",
+  "description": "BetBoos365 Backend — NestJS REST + WebSocket API",
   "scripts": {
     "build": "nest build",
     "start": "nest start",
@@ -17,7 +17,10 @@
     "prisma:seed:prod": "ts-node prisma/seed.prod.ts",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset",
-    "admin:promote": "ts-node prisma/admin-promote.ts"
+    "admin:promote": "ts-node prisma/admin-promote.ts",
+    "staff:bootstrap": "ts-node prisma/bootstrap-staff.ts",
+    "telegram:webhook": "ts-node scripts/telegram-set-webhook.ts",
+    "wallet:check": "ts-node scripts/check-wallet-integrity.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.3",
@@ -30,7 +33,7 @@
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^11.1.3",
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -50,7 +53,7 @@
     "@types/node": "^22.15.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/uuid": "^10.0.0",
-    "prisma": "^6.9.0",
+    "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },

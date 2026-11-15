@@ -1,4 +1,4 @@
-# Render Blueprint — declarative deployment config for TCL11.
+# Render Blueprint — declarative deployment config for BetBoos365.
 # Render reads this at the repo root when you create a Blueprint from a
 # GitHub repo. It provisions the backend web service from server/Dockerfile.
 # Database is Neon (external), not Render Postgres — Render's free Postgres
@@ -6,7 +6,7 @@
 
 services:
   - type: web
-    name: tcl11-backend
+    name: betboos365-backend
     runtime: docker
     plan: free            # Free: 512 MB RAM, 0.1 CPU, sleeps after 15 min idle
     region: singapore     # Match Neon region for low DB latency
@@ -45,7 +45,7 @@ services:
       - key: WITHDRAWAL_MAX
         value: "50000"
       - key: CORS_ORIGINS
-        value: https://tcl11-website.vercel.app
+        value: https://betboos365-website.vercel.app
       # Secrets — set in Render dashboard → Service → Environment, never in this file:
       - key: DATABASE_URL
         sync: false         # Neon pooled URL (?sslmode=require&pgbouncer=true&connect_timeout=15)

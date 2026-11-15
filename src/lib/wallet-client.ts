@@ -36,6 +36,8 @@ export async function createDeposit(payload: {
   paymentType: "SEND_MONEY" | "CASH_OUT";
   amount: number;
   transactionReference: string;
+  /** Optional: number the money was sent from. Any mobile number is accepted. */
+  senderPhone?: string;
 }) {
   return parse<WalletTransaction>(
     await fetch("/api/me/deposits", {
@@ -46,9 +48,22 @@ export async function createDeposit(payload: {
   );
 }
 
+export interface PayoutAccount {
+  /** Registered number in +8801XXXXXXXXX form, or null when the account has no valid number. */
+  phone: string | null;
+  hasValidPhone: boolean;
+  verified: boolean;
+  verifiedAt: string | null;
+}
+
+/** The only number a withdrawal can be paid to: the verified registered phone. */
+export async function fetchPayoutAccount() {
+  return parse<PayoutAccount>(await fetch("/api/me/payout-account", { cache: "no-store" }));
+}
+
+// No phone number is sent: the server always pays the verified registered number.
 export async function createWithdrawal(payload: {
   providerCode: string;
-  receivingPhone: string;
   amount: number;
 }) {
   return parse<WalletTransaction>(

@@ -1,10 +1,12 @@
 {
-  "name": "tcl11-website",
+  "name": "betboos365-website",
   "version": "0.1.0",
   "private": true,
-  "description": "TCL11 website — Next.js frontend (Step 02: design system)",
+  "description": "BetBoos365 website — Next.js frontend (Step 02: design system)",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.js",
+    "dev:frontend": "next dev",
+    "dev:backend": "cd server && npm run start:dev",
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -12,7 +14,8 @@
     "server:build": "cd server && npm install --no-audit --no-fund && npx tsc -p tsconfig.build.json",
     "prisma:generate": "prisma generate --schema=./server/prisma/schema.prisma",
     "prisma:migrate:prod": "prisma migrate deploy --schema=./server/prisma/schema.prisma",
-    "prisma:seed:prod": "cd server && npx ts-node prisma/seed.prod.ts"
+    "prisma:seed:prod": "cd server && npx ts-node prisma/seed.prod.ts",
+    "staff:bootstrap": "cd server && npx ts-node prisma/bootstrap-staff.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.9",

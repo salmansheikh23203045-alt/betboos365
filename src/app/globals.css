@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   TCL11 DESIGN TOKENS
+   BetBoos365 DESIGN TOKENS
    Values are estimated from the reference image (see docs/UI_REFERENCE_ANALYSIS.md §4).
    Verify with an eyedropper before final sign-off.
    Tailwind v4 @theme emits every token as a CSS variable (--color-tcl-red, ...)
@@ -434,4 +434,24 @@ body:has([data-admin-shell]) [data-chrome="public"] {
 }
 body:has([data-admin-shell]) {
   padding-bottom: 0 !important;
+}
+
+/* Telegram bonus popup: backdrop fade, card rise, reward glow. */
+@keyframes tg-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tg-card-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes tg-reward-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+  50% { box-shadow: 0 0 28px -4px rgba(255, 215, 0, 0.45); }
+}
+.tg-popup-backdrop { animation: tg-backdrop-in 200ms ease-out both; }
+.tg-popup-card { animation: tg-card-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tg-reward { animation: tg-reward-glow 2.6s ease-in-out 400ms infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tg-popup-backdrop, .tg-popup-card, .tg-reward { animation: none; }
 }

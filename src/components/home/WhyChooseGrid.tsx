@@ -3,14 +3,14 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { WHY_CHOOSE_FEATURES } from "@/data/mock";
 
 /**
- * WhyChooseGrid — "Why Choose TCL11?" with four gold icon tiles.
+ * WhyChooseGrid — "Why Choose BetBoos365?" with four gold icon tiles.
  * Reference: desktop right rail, bottom. Mobile placement is inferred (see CLAUDE_PROJECT_STATE.md).
  */
 export function WhyChooseGrid() {
   return (
-    <NeonCard as="section" aria-label="Why choose TCL11" className="space-y-4">
+    <NeonCard as="section" aria-label="Why choose BetBoos365" className="space-y-4">
       <h2 className="text-heading-sm font-extrabold uppercase tracking-wide text-tcl-white">
-        Why Choose TCL11?
+        Why Choose BetBoos365?
       </h2>
       <ul className="grid grid-cols-4 gap-2">
         {WHY_CHOOSE_FEATURES.map((feature) => {

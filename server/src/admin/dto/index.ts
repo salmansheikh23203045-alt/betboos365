@@ -1,2 +1,2 @@
 export { DashboardStatsDto } from './dashboard-stats.dto';
-export { UpdateUserRoleDto } from './update-user-role.dto';
+export { UpdateUserRoleDto, PhoneVerificationDto } from './update-user-role.dto';

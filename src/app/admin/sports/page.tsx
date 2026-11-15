@@ -3,7 +3,7 @@ import { backendFetch } from "@/lib/api";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS } from "@/lib/icons";
 
-export const metadata: Metadata = { title: "Sports & Matches | TCL11 Admin" };
+export const metadata: Metadata = { title: "Sports & Matches | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 interface Match {

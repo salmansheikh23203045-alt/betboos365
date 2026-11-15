@@ -16,17 +16,17 @@ const POPULAR = "/images/games/popular";
 const FEATURED = "/images/games/featured";
 
 export const MOBILE_POPULAR_GAMES: MobileGameTile[] = [
-  { id: "mp-slot", title: "SLOT", provider: "TCL11", category: "slots", isFree: false, artSrc: `${POPULAR}/slot.svg` },
-  { id: "mp-bonza", title: "BONZA", provider: "TCL11", category: "slots", isFree: false, artSrc: `${POPULAR}/bonza.webp` },
-  { id: "mp-aristocrat", title: "ARISTOCRAT", provider: "TCL11", category: "slots", isFree: false, artSrc: `${POPULAR}/aristocrat.webp` },
-  { id: "mp-live", title: "LIVE", provider: "TCL11", category: "live-casino", isFree: false, artSrc: `${POPULAR}/live.webp` },
-  { id: "mp-poker", title: "POKER", provider: "TCL11", category: "table", isFree: false, artSrc: `${POPULAR}/poker.webp` },
-  { id: "mp-baccarat", title: "BACCARAT", provider: "TCL11", category: "table", isFree: false, artSrc: `${POPULAR}/baccarat.webp` },
-  { id: "mp-roulette", title: "ROULETTE", provider: "TCL11", category: "table", isFree: false, artSrc: `${POPULAR}/roulette.webp` },
-  { id: "mp-lucky-wheel", title: "LUCKY WHEEL", provider: "TCL11", category: "arcade", isFree: false, artSrc: `${POPULAR}/lucky-wheel.webp` },
-  { id: "mp-jackpot", title: "JACKPOT", provider: "TCL11", category: "slots", isFree: false, artSrc: `${POPULAR}/jackpot.webp` },
-  { id: "mp-blackjack", title: "BLACKJACK", provider: "TCL11", category: "table", isFree: false, artSrc: `${POPULAR}/blackjack.webp` },
-  { id: "mp-sicbo", title: "SIC BO", provider: "TCL11", category: "table", isFree: false, artSrc: `${POPULAR}/sicbo.webp` },
+  { id: "mp-slot", title: "SLOT", provider: "BetBoos365", category: "slots", isFree: false, artSrc: `${POPULAR}/slot.svg` },
+  { id: "mp-bonza", title: "BONZA", provider: "BetBoos365", category: "slots", isFree: false, artSrc: `${POPULAR}/bonza.webp` },
+  { id: "mp-aristocrat", title: "ARISTOCRAT", provider: "BetBoos365", category: "slots", isFree: false, artSrc: `${POPULAR}/aristocrat.webp` },
+  { id: "mp-live", title: "LIVE", provider: "BetBoos365", category: "live-casino", isFree: false, artSrc: `${POPULAR}/live.webp` },
+  { id: "mp-poker", title: "POKER", provider: "BetBoos365", category: "table", isFree: false, artSrc: `${POPULAR}/poker.webp` },
+  { id: "mp-baccarat", title: "BACCARAT", provider: "BetBoos365", category: "table", isFree: false, artSrc: `${POPULAR}/baccarat.webp` },
+  { id: "mp-roulette", title: "ROULETTE", provider: "BetBoos365", category: "table", isFree: false, artSrc: `${POPULAR}/roulette.webp` },
+  { id: "mp-lucky-wheel", title: "LUCKY WHEEL", provider: "BetBoos365", category: "arcade", isFree: false, artSrc: `${POPULAR}/lucky-wheel.webp` },
+  { id: "mp-jackpot", title: "JACKPOT", provider: "BetBoos365", category: "slots", isFree: false, artSrc: `${POPULAR}/jackpot.webp` },
+  { id: "mp-blackjack", title: "BLACKJACK", provider: "BetBoos365", category: "table", isFree: false, artSrc: `${POPULAR}/blackjack.webp` },
+  { id: "mp-sicbo", title: "SIC BO", provider: "BetBoos365", category: "table", isFree: false, artSrc: `${POPULAR}/sicbo.webp` },
 ];
 
 /* 3 × 3 grid on mobile. Names shortened where the full provider name cannot fit a ~105px tile. */

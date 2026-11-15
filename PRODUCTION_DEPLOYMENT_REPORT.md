@@ -1,4 +1,4 @@
-# TCL11 — Production Deployment Report
+# BetBoos365 — Production Deployment Report
 
 **Deployment date:** 2026-11-11
 **Deployed by:** salman8809 (Vercel CLI 65.12.1)
@@ -10,11 +10,11 @@
 
 | Role | Provider | Resource |
 |---|---|---|
-| Frontend + Backend | Vercel | Project `tcl11-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`) |
-| Database | Neon | Project `tcl11-prod` (id `royal-sea-19087447`), branch `production`, DB `neondb`, Postgres 18, region `aws-ap-southeast-1` |
-| Repository | GitHub | `salman8809/tcl11-website`, branch `main` |
+| Frontend + Backend | Vercel | Project `betboos365-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`) |
+| Database | Neon | Project `betboos365-prod` (id `royal-sea-19087447`), branch `production`, DB `neondb`, Postgres 18, region `aws-ap-southeast-1` |
+| Repository | GitHub | `salman8809/betboos365-website`, branch `main` |
 
-**Not used (per user directive):** `tcl11-website-gcbc`, Railway, Fly.io, Render, Koyeb, any other hosting.
+**Not used (per user directive):** `betboos365-website-gcbc`, Railway, Fly.io, Render, Koyeb, any other hosting.
 
 ## 2. Deployed commit
 
@@ -23,9 +23,9 @@
   - `bd130d3 Step 14: add allowScripts for Prisma engines + bcrypt; log Neon status`
   - `6d429e9 Fix Vercel deployment identity` (remote-only, pre-existing)
   - `1bf0372 Fix Vercel deployment exclusions` (remote-only, pre-existing)
-  - `680e1b2 Prepare TCL11 for Vercel deployment` (remote-only, pre-existing)
+  - `680e1b2 Prepare BetBoos365 for Vercel deployment` (remote-only, pre-existing)
 
-The `TCL11 Deploy <deploy@tcl11.app>` commit was abandoned (local only, not deployed) because Vercel's commit-author protection blocks that identity on this project. All deployed commits are from authorized GitHub identities.
+The `BetBoos365 Deploy <deploy@betboos365.app>` commit was abandoned (local only, not deployed) because Vercel's commit-author protection blocks that identity on this project. All deployed commits are from authorized GitHub identities.
 
 ## 3. Database status
 
@@ -43,7 +43,7 @@ The `TCL11 Deploy <deploy@tcl11.app>` commit was abandoned (local only, not depl
 - `DIRECT_URL` (Neon direct endpoint with `?sslmode=require`, used only by `prisma migrate deploy`)
 - `JWT_SECRET` (96 hex chars from `crypto.randomBytes(48)`, fresh for production)
 - `JWT_EXPIRATION`, `JWT_REFRESH_EXPIRATION`
-- `CORS_ORIGINS` = `https://tcl11-website.vercel.app`
+- `CORS_ORIGINS` = `https://betboos365-website.vercel.app`
 - `THROTTLE_TTL`, `THROTTLE_LIMIT`
 - `SPORTS_API_PROVIDER`, `LOG_LEVEL`
 - `WALLET_CURRENCY`, `DEPOSIT_AGENT_NUMBER`, `DEPOSIT_MIN`, `DEPOSIT_MAX`, `WITHDRAWAL_MIN`, `WITHDRAWAL_MAX`

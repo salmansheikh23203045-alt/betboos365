@@ -12,10 +12,10 @@ async function main() {
 
   const demoUser = await prisma.user.upsert({
     where: { username: 'demo' },
-    update: { email: 'demo@tcl11.com' },
+    update: { email: 'demo@betboos365.com' },
     create: {
       username: 'demo',
-      email: 'demo@tcl11.com',
+      email: 'demo@betboos365.com',
       passwordHash: hash,
       firstName: 'Demo',
       lastName: 'User',
@@ -33,18 +33,18 @@ async function main() {
 
   const adminUser = await prisma.user.upsert({
     where: { username: 'admin' },
-    update: { email: 'admin@tcl11.com' },
+    update: { email: 'admin@betboos365.com' },
     create: {
       username: 'admin',
-      email: 'admin@tcl11.com',
+      email: 'admin@betboos365.com',
       passwordHash: hash,
       firstName: 'Admin',
-      lastName: 'TCL11',
+      lastName: 'BetBoos365',
       phone: '+8801234567891',
       roles: [UserRole.admin, UserRole.user],
       profile: {
         create: {
-          displayName: 'Admin TCL11',
+          displayName: 'Admin BetBoos365',
           vipLevel: 5,
         },
       },
@@ -53,10 +53,10 @@ async function main() {
 
   const vipUser = await prisma.user.upsert({
     where: { username: 'vip' },
-    update: { email: 'vip@tcl11.com' },
+    update: { email: 'vip@betboos365.com' },
     create: {
       username: 'vip',
-      email: 'vip@tcl11.com',
+      email: 'vip@betboos365.com',
       passwordHash: hash,
       firstName: 'Sarah',
       lastName: 'Chen',
@@ -77,10 +77,10 @@ async function main() {
 
   const modUser = await prisma.user.upsert({
     where: { username: 'mod' },
-    update: { email: 'mod@tcl11.com' },
+    update: { email: 'mod@betboos365.com' },
     create: {
       username: 'mod',
-      email: 'mod@tcl11.com',
+      email: 'mod@betboos365.com',
       passwordHash: hash,
       firstName: 'James',
       lastName: 'Wilson',
@@ -199,7 +199,7 @@ async function main() {
   // ── Notifications ──────────────────────────
   await prisma.notification.createMany({
     data: [
-      { userId: demoUser.id, type: NotificationType.system, title: 'Welcome to TCL11!', message: 'Your account has been created. Explore our games and sports offerings.' },
+      { userId: demoUser.id, type: NotificationType.system, title: 'Welcome to BetBoos365!', message: 'Your account has been created. Explore our games and sports offerings.' },
       { userId: demoUser.id, type: NotificationType.promotion, title: 'Welcome Bonus Available', message: 'Claim your 100% welcome bonus on your first deposit.' },
       { userId: vipUser.id, type: NotificationType.account, title: 'VIP Level Upgraded', message: 'Congratulations! You have been promoted to VIP Level 3.' },
       { userId: vipUser.id, type: NotificationType.promotion, title: 'Exclusive VIP Offer', message: 'A 50% reload bonus is now available for you.' },
@@ -263,7 +263,7 @@ async function main() {
       name: 'John Doe',
       email: 'john.doe@example.com',
       subject: 'Partnership inquiry',
-      message: 'I would like to discuss a potential partnership opportunity with TCL11.',
+      message: 'I would like to discuss a potential partnership opportunity with BetBoos365.',
       referenceId: 'contact-seed-001',
     },
   });

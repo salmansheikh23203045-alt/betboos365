@@ -6,7 +6,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { LIVE_CASINO_GAMES } from "@/data/pages";
 
-export const metadata: Metadata = { title: "Live Casino | TCL11" };
+export const metadata: Metadata = { title: "Live Casino | BetBoos365" };
 
 export default function LiveCasinoPage() {
   return (

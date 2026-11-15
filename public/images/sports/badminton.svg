@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<title>Badminton</title>
+<defs><radialGradient id="glow" cx="50%" cy="46%" r="50%"><stop offset="0" stop-color="#ffb52e" stop-opacity=".55"/><stop offset=".55" stop-color="#ff3d14" stop-opacity=".22"/><stop offset="1" stop-color="#ff1a00" stop-opacity="0"/></radialGradient><radialGradient id="rim" cx="50%" cy="50%" r="50%"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".35" stop-color="#ffc21a"/><stop offset=".7" stop-color="#c98a00"/><stop offset="1" stop-color="#ffdd6b"/></linearGradient><radialGradient id="shadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><linearGradient id="handle" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7a0606"/><stop offset=".45" stop-color="#e01e1e"/><stop offset="1" stop-color="#6a0505"/></linearGradient>
+<linearGradient id="shaft" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a8a8a"/><stop offset=".5" stop-color="#f2f2f2"/><stop offset="1" stop-color="#7a7a7a"/></linearGradient>
+<linearGradient id="skirt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9d4ca"/><stop offset=".35" stop-color="#ffffff"/><stop offset=".7" stop-color="#f4f1ea"/><stop offset="1" stop-color="#bdb6a8"/></linearGradient>
+<radialGradient id="cork" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="#fffaf0"/><stop offset=".55" stop-color="#eadbb8"/><stop offset="1" stop-color="#a88a52"/></radialGradient>
+<linearGradient id="band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4a3a"/><stop offset="1" stop-color="#a00000"/></linearGradient>
+<clipPath id="strings"><ellipse cx="0" cy="-24" rx="10" ry="14"/></clipPath></defs>
+<circle cx="60" cy="52" r="56" fill="url(#glow)"/>
+<g transform="translate(70 51) rotate(32) scale(.92)">
+<ellipse cx="0" cy="-24" rx="11.5" ry="15.5" fill="#000" fill-opacity=".28"/>
+<g clip-path="url(#strings)"><path d="M-9 -40V-8M-6.75 -40V-8M-4.5 -40V-8M-2.25 -40V-8M0 -40V-8M2.25 -40V-8M4.5 -40V-8M6.75 -40V-8M9 -40V-8M-11 -37.5H11M-11 -35.25H11M-11 -33H11M-11 -30.75H11M-11 -28.5H11M-11 -26.25H11M-11 -24H11M-11 -21.75H11M-11 -19.5H11M-11 -17.25H11M-11 -15H11M-11 -12.75H11M-11 -10.5H11" stroke="#fff" stroke-opacity=".8" stroke-width=".45"/></g>
+<rect x="-1.1" y="-9" width="2.2" height="29" fill="url(#shaft)"/>
+<ellipse cx="0" cy="-24" rx="11.5" ry="15.5" fill="none" stroke="url(#gold)" stroke-width="2.7"/>
+<rect x="-2.2" y="-10" width="4.4" height="3.4" rx="1" fill="url(#gold)"/>
+<rect x="-2.9" y="19" width="5.8" height="22" rx="2" fill="url(#handle)"/>
+<path d="M-2.8 22L2.8 19.8M-2.8 24.8L2.8 22.6M-2.8 27.6L2.8 25.4M-2.8 30.4L2.8 28.2M-2.8 33.2L2.8 31M-2.8 36L2.8 33.8M-2.8 38.8L2.8 36.6" stroke="#4a0303" stroke-width=".8" stroke-linecap="round"/>
+<rect x="-3.4" y="40" width="6.8" height="3.2" rx="1.2" fill="url(#gold)"/>
+</g><g transform="translate(37 47) rotate(-32) scale(1.05)">
+<path d="M-6.2 4L-16 -21Q-14 -24.04 -12 -22.2Q-10 -25.08 -8 -23.06Q-6 -25.76 -4 -23.58Q-2 -26.11 0 -23.75Q2 -26.11 4 -23.58Q6 -25.76 8 -23.06Q10 -25.08 12 -22.2Q14 -24.04 16 -21L6.2 4Z" fill="url(#skirt)" stroke="#9c958a" stroke-width=".6" stroke-linejoin="round"/>
+<path d="M-4.6 4L-12 -21.6M-1.6 4L-4 -22.98M1.6 4L4 -22.98M4.6 4L12 -21.6" stroke="#a39c90" stroke-width=".55" stroke-linecap="round"/>
+<path d="M-10.12 -6Q0 -4.4 10.12 -6M-12.67 -12.5Q0 -10.9 12.67 -12.5" fill="none" stroke="#d01414" stroke-width="1.1"/>
+<rect x="-7.2" y="3" width="14.4" height="3.8" rx=".9" fill="url(#band)"/>
+<path d="M-7.2 3.3H7.2" stroke="url(#gold)" stroke-width=".7"/>
+<path d="M-7 6.6H7V8A7 7.6 0 0 1 -7 8Z" fill="url(#cork)" stroke="#8a6a32" stroke-width=".5"/>
+</g>
+<path d="M100 81Q100.6 83.4 103 84Q100.6 84.6 100 87Q99.4 84.6 97 84Q99.4 83.4 100 81Z" fill="#fff3c4" opacity="0.9"/><path d="M16 78.8Q16.64 81.36 19.2 82Q16.64 82.64 16 85.2Q15.36 82.64 12.8 82Q15.36 81.36 16 78.8Z" fill="#fff3c4" opacity="0.9"/><path d="M106 19.6Q106.48 21.52 108.4 22Q106.48 22.48 106 24.4Q105.52 22.48 103.6 22Q105.52 21.52 106 19.6Z" fill="#fff3c4" opacity="0.9"/>
+</svg>

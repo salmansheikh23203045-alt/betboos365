@@ -1,8 +1,8 @@
-# TCL11 Production Deployment Readiness Audit
+# BetBoos365 Production Deployment Readiness Audit
 
 **Audit date:** 2026-11-11 16:46 (+06:00)  
-**Target:** Vercel project `tcl11-website`  
-**Production URL:** <https://tcl11-website.vercel.app>  
+**Target:** Vercel project `betboos365-website`  
+**Production URL:** <https://betboos365-website.vercel.app>  
 **Scope:** Current working-tree source and configuration, local build/type checks, Vercel project environment-variable names, and read-only production HTTP probes. No application code was changed and no deployment or database migration was run.
 
 ## Executive decision

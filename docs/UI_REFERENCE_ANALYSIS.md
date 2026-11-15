@@ -1,4 +1,4 @@
-# TCL11 — UI Reference Analysis
+# BetBoos365 — UI Reference Analysis
 
 **Source:** single composite reference image (left: desktop, right: mobile).
 **Status:** Step 01 analysis. Colors and sizes are estimated by eye from the image and must be verified with an eyedropper / original design files before Step 03 (styling).
@@ -19,7 +19,7 @@
 | Popular games | Full (tabs + 4 tiles) | Partial (no tabs, 4th tile cut off) |
 | Featured games | Full (2 × 5 grid) | Partial (3 visible, cut off) |
 | Payment strip | Full | **Not visible** |
-| Why Choose TCL11? | Full | **Not visible** |
+| Why Choose BetBoos365? | Full | **Not visible** |
 | Footer | Full | **Not visible** |
 | Bottom tab bar | — | Full (5 tabs) |
 
@@ -32,13 +32,13 @@
 Overall structure: a **header**, a full-width **gold marquee**, then a **two-column body**: a wide main column (~2/3) and a narrow right rail (~1/3). The footer spans full width. The payment strip sits between the body and the footer, spanning full width.
 
 ### 2.1 Header (top bar, ~62 px tall, black)
-- **Left:** TCL11 logo (dice/cards/crown mark + wordmark, gold + white).
+- **Left:** BetBoos365 logo (dice/cards/crown mark + wordmark, gold + white).
 - **Center-left nav:** icon-over-label items: `Home` (active: red filled tile with gold text), `Casino`, `Slots`, `Live Casino`, `Sports`, `Esports`, `Promotion`.
 - **Right:** search icon (ghost), `Log In` (gold 1 px outline, gold text), `Sign Up` (solid red, white bold text), language selector `EN` with UK flag and chevron.
 
 ### 2.2 Promo marquee (~28 px tall)
 - Full-width gold (#F5B800-ish) strip, black uppercase bold text, single line, centered:
-  `WELCOME TO TCL11, A PLACE WHERE THRILLING EXPERIENCES AND EVERYDAY ENJOYMENT COME TOGETHER AND TAKE PLEASURE IN THE ACTION AS YOU SEE IT!!`
+  `WELCOME TO BetBoos365, A PLACE WHERE THRILLING EXPERIENCES AND EVERYDAY ENJOYMENT COME TOGETHER AND TAKE PLEASURE IN THE ACTION AS YOU SEE IT!!`
 - Reference shows it static; likely a scrolling marquee in production (decision needed, see Open Questions).
 
 ### 2.3 Hero banner (main column, ~770 × 220 px, rounded ~12 px, red glowing border)
@@ -67,8 +67,8 @@ Overall structure: a **header**, a full-width **gold marquee**, then a **two-col
 - Subline `Bet on Your Favorite Teams` (white).
 - Gold pill button `Bet Now →`.
 
-### 2.7 Right rail — Why Choose TCL11? (~330 × 150 px, dark, red border)
-- Heading `Why Choose TCL11?` (white, bold).
+### 2.7 Right rail — Why Choose BetBoos365? (~330 × 150 px, dark, red border)
+- Heading `Why Choose BetBoos365?` (white, bold).
 - 4 columns, each: square red-glow icon tile (gold icon) + 2-line label:
   - Shield-check icon — `Safe & Secure`
   - Zap icon — `Fast Deposit & Withdraw`
@@ -102,13 +102,13 @@ Overall structure: a **header**, a full-width **gold marquee**, then a **two-col
 - Logos are third-party marks; they must be supplied as official assets.
 
 ### 2.12 Footer (full width, black/dark-red gradient, ~1150 × 150 px)
-- **Brand column:** TCL11 logo; paragraph: `TCL11 is a trusted online entertainment platform with a wide range of casino, slots, live casino, sports and more. Play safely and enjoy exciting rewards.`
+- **Brand column:** BetBoos365 logo; paragraph: `BetBoos365 is a trusted online entertainment platform with a wide range of casino, slots, live casino, sports and more. Play safely and enjoy exciting rewards.`
 - **Quick Links** (gold section title): Home, About Us, Blog, FAQ — each with a small gold arrow icon.
 - **Games:** Casino, Slots, Live Casino, Sports.
 - **Help & Support:** Contact Us, Live Chat, Terms & Conditions, Privacy Policy.
 - **Get The App:** text `Download our mobile app for a better experience`; two black badges: `Download for Android` (Google Play style), `Download for iOS` (App Store style).
 - **Follow Us:** circular red icon buttons: YouTube, Facebook, Telegram, Instagram, TikTok.
-- **Bottom bar:** `© 2026 TCL11. All Rights Reserved.` (centered) · right side `18+ Play Responsibly` badge · `Gambling Aware` badge.
+- **Bottom bar:** `© 2026 BetBoos365. All Rights Reserved.` (centered) · right side `18+ Play Responsibly` badge · `Gambling Aware` badge.
 
 ---
 
@@ -118,7 +118,7 @@ Mobile is **not** a scaled desktop. It has its own header, its own shortcut trea
 
 ### 3.1 Mobile header (sticky top, ~60 px)
 - Left: gold hamburger icon.
-- Center: TCL11 logo.
+- Center: BetBoos365 logo.
 - Right: gold headset icon (support).
 - Below: two equal full-width buttons in a row: `Log In` (gold outline), `Sign Up` (solid red).
 
@@ -229,7 +229,7 @@ Motion (to be specified in Step 03/Framer Motion): hero carousel auto-advance, m
 
 | # | Asset | Where used | Status |
 |---|---|---|---|
-| A1 | TCL11 logo (horizontal, full color, and white/mono variant) | Header, footer, mobile header | ✅ reference only — need SVG/PNG master |
+| A1 | BetBoos365 logo (horizontal, full color, and white/mono variant) | Header, footer, mobile header | ✅ reference only — need SVG/PNG master |
 | A2 | Hero banner artwork — desktop (~1920 px) | Hero | ❌ need master; text should be live HTML, not baked in |
 | A3 | Hero banner artwork — mobile crop | Hero (mobile) | ❌ |
 | A4 | Popular game category tiles: SLOT, BONZA, ARISTOCRAT, LIVE (4) | Popular games | ❌ |

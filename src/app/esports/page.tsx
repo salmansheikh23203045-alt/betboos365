@@ -6,7 +6,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ESPORTS_GAMES } from "@/data/pages";
 
-export const metadata: Metadata = { title: "Esports | TCL11" };
+export const metadata: Metadata = { title: "Esports | BetBoos365" };
 
 export default function EsportsPage() {
   return (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth, type SessionUser } from "@/components/auth/AuthProvider";
 import { UserInfoCard } from "./UserInfoCard";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { ICONS, type IconName } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
 import { fetchMyWallet } from "@/lib/wallet-client";
@@ -75,24 +76,27 @@ export function MobileProfileHome({ user }: { user: SessionUser }) {
 
       {/* Three action buttons */}
       <div className="grid grid-cols-3 gap-2">
-        <Link
+        <PrimaryButton
           href="/profile/deposit"
-          className="rounded-full border border-tcl-border-muted bg-tcl-surface-2 py-2.5 text-center text-caption font-semibold text-tcl-white tap-feedback hover-glow-red"
+          icon="ArrowDownCircle"
+          className="rounded-full py-2.5 text-[11px] font-semibold"
         >
           {BN.userCenter.submitDeposit}
-        </Link>
-        <Link
+        </PrimaryButton>
+        <PrimaryButton
           href="/profile/withdraw"
-          className="rounded-full border border-tcl-border-muted bg-tcl-surface-2 py-2.5 text-center text-caption font-semibold text-tcl-white tap-feedback hover-glow-red"
+          icon="ArrowUpCircle"
+          className="rounded-full py-2.5 text-[11px] font-semibold"
         >
           {BN.userCenter.withdraw}
-        </Link>
-        <Link
+        </PrimaryButton>
+        <PrimaryButton
           href="/profile/records"
-          className="rounded-full border border-tcl-border-muted bg-tcl-surface-2 py-2.5 text-center text-caption font-semibold text-tcl-white tap-feedback hover-glow-red"
+          icon="BookOpen"
+          className="rounded-full py-2.5 text-[11px] font-semibold"
         >
           {BN.userCenter.myCard}
-        </Link>
+        </PrimaryButton>
       </div>
 
       {/* Member center grid */}

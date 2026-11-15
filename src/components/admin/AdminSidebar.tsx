@@ -3,64 +3,65 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ICONS, type IconName } from "@/lib/icons";
+import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
 import type { SessionUser } from "@/components/auth/AuthProvider";
 import { BN } from "@/i18n/bn";
+import { roleLabel as roleLabelFor } from "@/lib/roles";
 
 interface NavEntry {
   label: string;
   href: string;
   icon: IconName;
-  requires?: "super_admin";
+  /** Permission needed to see the item. The backend enforces the same permission on the data. */
+  permission: string;
 }
 
-// Exact order from the reference image. Label "Admin" is deliberate — not
-// "Admin & Staff" per the user's explicit instruction.
+// Each item is shown only to accounts holding its permission, so a Sub Admin
+// sees just the deposit / withdrawal sections and a plain Admin does not see
+// Super Admin tools. Hiding is for tidiness; the API refuses the rest anyway.
 const NAV: NavEntry[] = [
-  { label: BN.admin.overview, href: "/admin", icon: "House" },
-  { label: BN.admin.userManagement, href: "/admin/users", icon: "Users" },
-  { label: BN.admin.adminMgmt, href: "/admin/admins", icon: "ShieldCheck", requires: "super_admin" },
-  { label: BN.admin.rolesPermissions, href: "/admin/roles", icon: "Shield", requires: "super_admin" },
-  { label: BN.admin.gamesProviders, href: "/admin/games", icon: "Gamepad2" },
-  { label: BN.admin.sportsMatches, href: "/admin/sports", icon: "Trophy" },
-  { label: BN.admin.promotions, href: "/admin/promotions", icon: "Gift" },
-  { label: BN.admin.transactions, href: "/admin/transactions", icon: "History" },
-  { label: BN.admin.walletFinance, href: "/admin/finance", icon: "Wallet" },
-  { label: BN.admin.supportTickets, href: "/admin/support", icon: "MessageCircle" },
-  { label: BN.admin.reports, href: "/admin/reports", icon: "TrendingUp" },
-  { label: BN.admin.auditLogs, href: "/admin/audit-logs", icon: "BookOpen" },
-  { label: BN.admin.systemSettings, href: "/admin/settings", icon: "Settings" },
+  { label: BN.admin.overview, href: "/admin", icon: "House", permission: "dashboard.view" },
+  { label: BN.admin.userManagement, href: "/admin/users", icon: "Users", permission: "users.view" },
+  { label: BN.admin.adminMgmt, href: "/admin/admins", icon: "ShieldCheck", permission: "admins.manage" },
+  { label: "Agent Management", href: "/admin/agents", icon: "Headset", permission: "agents.manage" },
+  { label: "Sub Admin Management", href: "/admin/sub-admins", icon: "ShieldCheck", permission: "sub_admins.manage" },
+  { label: BN.admin.rolesPermissions, href: "/admin/roles", icon: "Shield", permission: "admins.manage" },
+  { label: "Deposit Management", href: "/admin/deposits", icon: "ArrowDownCircle", permission: "deposits.view" },
+  { label: "Withdrawal Management", href: "/admin/withdrawals", icon: "ArrowUpCircle", permission: "withdrawals.view" },
+  { label: BN.admin.transactions, href: "/admin/transactions", icon: "History", permission: "transactions.view" },
+  { label: "Telegram Bonuses", href: "/admin/bonuses", icon: "Gift", permission: "transactions.view" },
+  { label: BN.admin.gamesProviders, href: "/admin/games", icon: "Gamepad2", permission: "content.manage" },
+  { label: BN.admin.sportsMatches, href: "/admin/sports", icon: "Trophy", permission: "content.manage" },
+  { label: BN.admin.promotions, href: "/admin/promotions", icon: "Gift", permission: "content.manage" },
+  { label: BN.admin.supportTickets, href: "/admin/support", icon: "MessageCircle", permission: "dashboard.view" },
+  { label: BN.admin.reports, href: "/admin/reports", icon: "TrendingUp", permission: "dashboard.view" },
+  { label: BN.admin.auditLogs, href: "/admin/audit-logs", icon: "BookOpen", permission: "audit.view" },
+  { label: BN.admin.systemSettings, href: "/admin/settings", icon: "Settings", permission: "settings.manage" },
 ];
 
 export function AdminSidebar({
   user,
-  isSuperAdmin,
   mobileOpen,
   onCloseMobile,
 }: {
   user: SessionUser;
-  isSuperAdmin: boolean;
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }) {
   const pathname = usePathname();
-  const roleLabel = isSuperAdmin ? "Super Admin" : "Admin";
-
-  // Super-admin-only items are HIDDEN from plain admins — the admin
-  // controller still rejects them on the backend, but hiding avoids UI
-  // dead links.
-  const visibleNav = NAV.filter((n) => !n.requires || n.requires === "super_admin" ? (n.requires ? isSuperAdmin : true) : true);
+  const roleLabel = roleLabelFor(user.roles);
+  const permissions = user.permissions ?? [];
+  const visibleNav = NAV.filter((n) => permissions.includes(n.permission));
+  const homeHref = visibleNav[0]?.href ?? "/admin";
 
   const content = (
     <aside className="flex h-full w-72 flex-col border-r border-tcl-red/30 bg-tcl-black">
       {/* Brand */}
-      <div className="flex items-center gap-3 border-b border-tcl-border-muted px-5 py-5">
-        <div className="relative">
-          <ICONS.Crown aria-hidden="true" className="size-8 text-tcl-gold" />
-        </div>
-        <div className="leading-tight">
-          <p className="font-display text-heading-md uppercase text-tcl-white">TCL11</p>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-tcl-red-bright">
+      <div className="flex items-center justify-between border-b border-tcl-border-muted px-5 py-4">
+        <div>
+          <Logo size="sm" href={homeHref} />
+          <p className="text-[10px] uppercase tracking-[0.2em] text-tcl-red-bright mt-1 pl-0.5">
             {roleLabel}
           </p>
         </div>
@@ -117,7 +118,7 @@ export function AdminSidebar({
       <div className="border-t border-tcl-border-muted px-4 py-4">
         <div className="rounded-md border border-tcl-red/30 bg-tcl-surface-2 p-3 text-center">
           <ICONS.Crown aria-hidden="true" className="mx-auto mb-1 size-5 text-tcl-gold" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-tcl-white">TCL11</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-tcl-white">BetBoos365</p>
           <p className="text-[10px] text-tcl-muted">{roleLabel} Panel</p>
           <p className="mt-1 text-[10px] text-tcl-muted">v1.0.0</p>
         </div>

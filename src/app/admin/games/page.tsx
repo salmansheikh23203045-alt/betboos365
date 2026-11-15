@@ -4,7 +4,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS } from "@/lib/icons";
 import { GameToggleCell } from "./GameToggleCell";
 
-export const metadata: Metadata = { title: "Games & Providers | TCL11 Admin" };
+export const metadata: Metadata = { title: "Games & Providers | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 interface GameRow {

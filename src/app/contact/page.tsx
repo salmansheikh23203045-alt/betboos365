@@ -7,7 +7,7 @@ import { ICONS } from "@/lib/icons";
 
 const CHANNELS = [
   { icon: "MessageCircle" as const, title: "Live Chat", text: "Chat with our support team in real time. Available 24/7.", cta: "Start Chat", href: "/chat" },
-  { icon: "Mail" as const, title: "Email", text: "Send us a message and we'll get back to you within 24 hours.", cta: "support@tcl11.com", href: "mailto:support@tcl11.com" },
+  { icon: "Mail" as const, title: "Email", text: "Send us a message and we'll get back to you within 24 hours.", cta: "support@betboos365.com", href: "mailto:support@betboos365.com" },
   { icon: "Phone" as const, title: "Phone", text: "Call us for urgent matters. Available Monday to Friday, 9am-6pm.", cta: "+1 (800) 123-4567", href: "tel:+18001234567" },
 ];
 

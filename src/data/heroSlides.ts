@@ -1,8 +1,21 @@
 import type { HeroSlide } from "@/types";
 
-/* Welcome Bonus hero slides. Artwork keeps the left ~45% empty so live HTML text can sit there.
- * Mobile crops the 3:1 artwork to 2:1, so the position is pushed right to keep the subject in frame. */
+/* Welcome Bonus hero slides and sports promotional banners. */
 export const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "hero-football",
+    src: "/images/banners/banner-04.png",
+    alt: "Football Betting promotion banner with players and stadium",
+    objectPosition: { desktop: "center center", mobile: "center center" },
+    hideOverlay: true,
+  },
+  {
+    id: "hero-cricket",
+    src: "/images/banners/banner-05.png",
+    alt: "Cricket Betting promotion banner with players, trophy and equipment",
+    objectPosition: { desktop: "center center", mobile: "center center" },
+    hideOverlay: true,
+  },
   {
     id: "hero-1",
     src: "/images/banners/banner-01.png",

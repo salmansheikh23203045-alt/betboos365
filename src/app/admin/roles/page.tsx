@@ -5,7 +5,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS } from "@/lib/icons";
 import { cn } from "@/lib/cn";
 
-export const metadata: Metadata = { title: "Roles & Permissions | TCL11 Admin" };
+export const metadata: Metadata = { title: "Roles & Permissions | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 const ROLES: Array<{ slug: string; label: string; summary: string; tint: string; permissions: string[] }> = [

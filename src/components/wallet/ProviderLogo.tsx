@@ -1,13 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { PaymentProvider } from "@/types/wallet";
 
-/**
- * Brand mark for Bangladeshi mobile financial services. No vendor logos
- * are shipped — the mark is the provider's brand-color stylised initial with
- * the brand color applied as a glowing background, so the identity is clear
- * at a glance without infringing a logo. Replace with vendor-supplied PNG/SVG
- * once licensing is confirmed.
- */
 export function ProviderLogo({
   provider,
   size = "md",
@@ -19,26 +12,56 @@ export function ProviderLogo({
 }) {
   const sizeClass =
     size === "sm"
-      ? "size-9 text-[12px]"
+      ? "size-9"
       : size === "lg"
-        ? "size-14 text-[18px]"
-        : "size-11 text-[14px]";
-  const initial = provider.name.charAt(0).toUpperCase();
+        ? "size-14"
+        : "size-11";
+
+  const code = (provider.code || "").toUpperCase();
+
+  const logoMap: Record<string, string> = {
+    BKASH: "/images/payments/bkash.png",
+    NAGAD: "/images/payments/nagad.png",
+    ROCKET: "/images/payments/rocket.png",
+    UPAY: "/images/payments/upay.png",
+  };
+
+  const imgSrc = logoMap[code] ?? provider.logoUrl;
+
+  if (imgSrc) {
+    return (
+      <div
+        className={cn(
+          "relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-white/5 border border-white/10 shrink-0",
+          sizeClass,
+          className,
+        )}
+        aria-label={provider.name}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imgSrc}
+          alt={provider.name}
+          className="size-full object-contain p-1"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "relative inline-flex items-center justify-center rounded-full font-bold uppercase text-white",
+        "relative inline-flex items-center justify-center rounded-lg font-bold uppercase text-white shrink-0",
         "border border-white/10",
         sizeClass,
         className,
       )}
       style={{
-        backgroundColor: provider.brandColor,
-        boxShadow: `0 0 18px ${provider.brandColor}66, inset 0 0 12px rgba(0,0,0,0.3)`,
+        backgroundColor: provider.brandColor || "#e2136c",
       }}
       aria-label={provider.name}
     >
-      <span>{initial}</span>
+      <span className="text-xs">{provider.name.charAt(0)}</span>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-# TCL11 Production Deployment Guide
+# BetBoos365 Production Deployment Guide
 
 **Status:** prepared — awaiting user approval to execute live deployment.
 
@@ -21,14 +21,14 @@ account credentials.
                ▼
 ┌──────────────────────────────┐        server-side only
 │  Vercel                      │   fetch (Authorization: Bearer)
-│  Next.js 16 (tcl11-website)  │─────────────────────────────┐
+│  Next.js 16 (betboos365-website)  │─────────────────────────────┐
 │  /api/auth/*, /api/me/*      │                             │
 │  BFF cookies + proxy         │                             │
 └──────────────────────────────┘                             │
                                                              ▼
                                               ┌────────────────────────────┐
                                               │  Railway                   │
-                                              │  NestJS (tcl11-backend)    │
+                                              │  NestJS (betboos365-backend)    │
                                               │  Dockerfile, /health,      │
                                               │  JWT, Prisma, Socket.IO    │
                                               └─────────────┬──────────────┘
@@ -37,7 +37,7 @@ account credentials.
                                                             ▼
                                               ┌────────────────────────────┐
                                               │  Neon                      │
-                                              │  Postgres 17 (tcl11-prod)  │
+                                              │  Postgres 17 (betboos365-prod)  │
                                               │  SSL required              │
                                               └────────────────────────────┘
 ```
@@ -57,7 +57,7 @@ account credentials.
 
 ## 2. Required environment variables
 
-### 2.1 On Vercel (`tcl11-website` project)
+### 2.1 On Vercel (`betboos365-website` project)
 
 | Name               | Where set                    | Scope               | Example                                            |
 |--------------------|------------------------------|---------------------|----------------------------------------------------|
@@ -67,7 +67,7 @@ That is the **only** variable the frontend needs. It must NOT be prefixed
 with `NEXT_PUBLIC_` — it is read server-side only, so the browser never sees
 the backend URL.
 
-### 2.2 On Railway (`tcl11-backend` service)
+### 2.2 On Railway (`betboos365-backend` service)
 
 Copy the shape from `server/.env.production.example`. The values marked
 SECRET are entered in the Railway Variables UI; nothing lands in git.
@@ -81,7 +81,7 @@ SECRET are entered in the Railway Variables UI; nothing lands in git.
 | `JWT_SECRET`             | yes (SECRET) | ≥32 random chars; generate with `openssl rand -base64 48`; must differ from the dev value |
 | `JWT_EXPIRATION`         | yes      | `15m` (keep short) |
 | `JWT_REFRESH_EXPIRATION` | yes      | `7d` |
-| `CORS_ORIGINS`           | yes      | `https://tcl11-website.vercel.app` (comma-separated if more) |
+| `CORS_ORIGINS`           | yes      | `https://betboos365-website.vercel.app` (comma-separated if more) |
 | `THROTTLE_TTL`           | yes      | `60` |
 | `THROTTLE_LIMIT`         | yes      | `100` |
 | `SPORTS_API_PROVIDER`    | yes      | `mock` (keep until a licensed provider is signed) |
@@ -102,7 +102,7 @@ agent will verify.
 
 1. Open **https://console.neon.tech/signup** and sign up / log in with the
    owner's preferred SSO.
-2. Create a new project: name `tcl11-prod`, region closest to where most
+2. Create a new project: name `betboos365-prod`, region closest to where most
    users live (for a BD audience, pick `ap-southeast-1 Singapore`), Postgres
    version **17** (match the local dev).
 3. On the project page → **Connection Details** → turn **Pooled connection**
@@ -124,14 +124,14 @@ agent will verify.
    GitHub as a new private repo under my account" and the agent will walk
    through `gh repo create` and confirm visibility.
 3. In Railway, click **New Project** → **Deploy from GitHub repo** → pick
-   the TCL11 repo. When asked for the service's **Root Directory**, enter
+   the BetBoos365 repo. When asked for the service's **Root Directory**, enter
    `server`. The `server/Dockerfile` and `server/railway.json` already
    present will be detected.
 4. Settings → **Networking** → click **Generate Domain** to get a
    `https://<something>.up.railway.app` URL.
 5. Settings → **Variables** → enter every row from the table in §2.2,
    pasting the Neon URLs from §3.1 into `DATABASE_URL` and `DIRECT_URL`.
-   For `CORS_ORIGINS`, use `https://tcl11-website.vercel.app` (and append
+   For `CORS_ORIGINS`, use `https://betboos365-website.vercel.app` (and append
    any other allowed origins as a comma-separated list).
 6. Trigger the first deploy. Watch the logs — success looks like:
    ```
@@ -167,7 +167,7 @@ Owner flow for the first admin:
 1. **Content seed.** Agent runs `npm run prisma:seed:prod` from the Railway
    service shell once, at launch. Confirm the `Providers: 5 … Promotions:
    6 created` output.
-2. **Owner signup.** Owner opens `https://tcl11-website.vercel.app/signup`
+2. **Owner signup.** Owner opens `https://betboos365-website.vercel.app/signup`
    and registers with a strong password of THEIR choice. (Backend enforces
    ≥8 chars, mixed case, and a digit — pick something longer.)
 3. **Promote.** Agent opens a Railway shell on the backend service and runs
@@ -183,7 +183,7 @@ audit row with the before/after roles.
 
 ### 3.4 Vercel — wire the frontend to the live backend (≈2 min)
 
-1. Open **https://vercel.com/salman8809/tcl11-website/settings/environment-variables**.
+1. Open **https://vercel.com/salman8809/betboos365-website/settings/environment-variables**.
 2. Add a new variable:
    - Name: `BACKEND_API_URL`
    - Value: `https://<your-railway-domain>/api/v1`

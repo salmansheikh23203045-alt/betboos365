@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { MissionsClient } from "./MissionsClient";
 
-export const metadata = { title: "মিশন — TCL11" };
+export const metadata = { title: "মিশন — BetBoos365" };
 
 export default async function MissionsPage() {
   const user = await getSession();

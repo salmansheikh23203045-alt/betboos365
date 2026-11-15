@@ -3,15 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  // Runtime connection. In production this is Neon's POOLED endpoint
-  // (ends with `-pooler.…neon.tech` and carries `?pgbouncer=true&sslmode=require`)
-  // so the app can hold many lightweight clients.
-  url       = env("DATABASE_URL")
-  // Migration connection. Neon's pooler cannot run DDL; `prisma migrate`
-  // and `prisma db push` use this direct endpoint instead. Locally we
-  // leave DIRECT_URL unset and Prisma falls back to DATABASE_URL.
-  directUrl = env("DIRECT_URL")
+  provider = "mysql"
+  url      = env("MYSQL_DATABASE_URL")
 }
 
 // ──────────────────────────────────────────────
@@ -24,6 +17,8 @@ enum UserRole {
   moderator
   admin
   super_admin
+  agent
+  sub_admin
 }
 
 enum TicketStatus {
@@ -68,6 +63,8 @@ enum AuditAction {
   WITHDRAWAL_APPROVED
   WITHDRAWAL_REJECTED
   WITHDRAWAL_COMPLETED
+  WITHDRAWAL_ASSIGNED
+  PHONE_VERIFIED
 }
 
 enum TransactionStatus {
@@ -89,6 +86,11 @@ enum WalletLedgerType {
   WITHDRAWAL_DEBIT
   ADJUSTMENT_CREDIT
   ADJUSTMENT_DEBIT
+  BONUS_CREDIT
+}
+
+enum BonusType {
+  TELEGRAM_JOIN
 }
 
 enum GameCategory {
@@ -119,45 +121,65 @@ enum PromotionStatus {
 // ──────────────────────────────────────────────
 
 model User {
-  id           String   @id @default(uuid())
-  username     String   @unique
-  email        String?  @unique
-  passwordHash String   @map("password_hash")
-  firstName    String   @map("first_name")
-  lastName     String   @map("last_name")
-  phone        String?
-  roles        UserRole[] @default([user])
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                 String    @id @default(uuid())
+  username           String    @unique
+  email              String?   @unique
+  passwordHash       String    @map("password_hash")
+  firstName          String    @map("first_name")
+  lastName           String    @map("last_name")
+  phone              String?
+  // Set when staff confirm the registered number belongs to the account holder.
+  // Withdrawals are only paid to a verified registered number.
+  phoneVerifiedAt    DateTime? @map("phone_verified_at")
+  roles              Json      @default("[\"user\"]")
+  // Explicit permission list for sub_admin accounts (null = role defaults).
+  permissions        Json?
+  isActive           Boolean   @default(true) @map("is_active")
+  // Set on accounts created with a temporary password (bootstrap staff, staff
+  // created or reset by an admin). While true the API refuses everything
+  // except reading the session and changing the password.
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
-  profile           UserProfile?
-  refreshTokens     RefreshToken[]
-  notifications     Notification[]
-  supportTickets    SupportTicket[]
-  ticketMessages    TicketMessage[]
-  auditLogs         AuditLog[]
-  userPromotions    UserPromotion[]
-  gameLaunches      GameLaunch[]
-  wallet            Wallet?
-  depositRequests   DepositRequest[]  @relation("UserDeposits")
-  withdrawalRequests WithdrawalRequest[] @relation("UserWithdrawals")
-  processedDeposits DepositRequest[]  @relation("DepositProcessor")
+  profile              UserProfile?
+  refreshTokens        RefreshToken[]
+  notifications        Notification[]
+  supportTickets       SupportTicket[]
+  ticketMessages       TicketMessage[]
+  auditLogs            AuditLog[]
+  userPromotions       UserPromotion[]
+  gameLaunches         GameLaunch[]
+  wallet               Wallet?
+  depositRequests      DepositRequest[]    @relation("UserDeposits")
+  withdrawalRequests   WithdrawalRequest[] @relation("UserWithdrawals")
+  processedDeposits    DepositRequest[]    @relation("DepositProcessor")
   processedWithdrawals WithdrawalRequest[] @relation("WithdrawalProcessor")
+  assignedWithdrawals  WithdrawalRequest[] @relation("WithdrawalAssignedAgent")
+  assignmentsMade      WithdrawalRequest[] @relation("WithdrawalAssigner")
+  completedWithdrawals WithdrawalRequest[] @relation("WithdrawalCompleter")
+  telegramLink         TelegramLink?
+  telegramLinkCodes    TelegramLinkCode[]
+  bonusClaims          BonusClaim[]
+
+  agentId String? @map("agent_id")
+  agent   User?   @relation("AgentPlayers", fields: [agentId], references: [id])
+  players User[]  @relation("AgentPlayers")
 
   @@index([username])
   @@index([email])
   @@index([isActive])
   @@index([createdAt])
+  @@index([agentId])
   @@map("users")
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String   @map("user_id")
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
   revokedAt DateTime? @map("revoked_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -182,10 +204,10 @@ model UserProfile {
   timezone          String  @default("UTC")
   vipLevel          Int     @default(0) @map("vip_level")
 
-  totalDeposits     Decimal @default(0) @map("total_deposits") @db.Decimal(14, 2)
-  totalWithdrawals  Decimal @default(0) @map("total_withdrawals") @db.Decimal(14, 2)
-  activeBonuses     Int     @default(0) @map("active_bonuses")
-  gamesPlayed       Int     @default(0) @map("games_played")
+  totalDeposits    Decimal @default(0) @map("total_deposits") @db.Decimal(14, 2)
+  totalWithdrawals Decimal @default(0) @map("total_withdrawals") @db.Decimal(14, 2)
+  activeBonuses    Int     @default(0) @map("active_bonuses")
+  gamesPlayed      Int     @default(0) @map("games_played")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -200,11 +222,11 @@ model UserProfile {
 // ──────────────────────────────────────────────
 
 model GameProvider {
-  id        String  @id @default(uuid())
-  name      String  @unique
-  slug      String  @unique
-  logoUrl   String? @map("logo_url")
-  isActive  Boolean @default(true) @map("is_active")
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  logoUrl   String?  @map("logo_url")
+  isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
 
   games Game[]
@@ -225,8 +247,8 @@ model Game {
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 
-  provider  GameProvider @relation(fields: [providerId], references: [id])
-  launches  GameLaunch[]
+  provider GameProvider @relation(fields: [providerId], references: [id])
+  launches GameLaunch[]
 
   @@index([category])
   @@index([providerId])
@@ -236,9 +258,9 @@ model Game {
 }
 
 model GameLaunch {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  gameId    String   @map("game_id")
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  gameId     String   @map("game_id")
   launchedAt DateTime @default(now()) @map("launched_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -265,11 +287,11 @@ model Sport {
 }
 
 model League {
-  id       String @id @default(uuid())
-  name     String
-  slug     String @unique
-  sportId  String @map("sport_id")
-  country  String?
+  id      String  @id @default(uuid())
+  name    String
+  slug    String  @unique
+  sportId String  @map("sport_id")
+  country String?
 
   sport   Sport        @relation(fields: [sportId], references: [id])
   matches SportMatch[]
@@ -279,10 +301,10 @@ model League {
 }
 
 model Team {
-  id       String @id @default(uuid())
-  name     String
-  slug     String @unique
-  logoUrl  String? @map("logo_url")
+  id      String  @id @default(uuid())
+  name    String
+  slug    String  @unique
+  logoUrl String? @map("logo_url")
 
   homeMatches SportMatch[] @relation("HomeTeam")
   awayMatches SportMatch[] @relation("AwayTeam")
@@ -459,15 +481,15 @@ model ContactSubmission {
 // ──────────────────────────────────────────────
 
 model PaymentProvider {
-  id          String   @id @default(uuid())
-  code        String   @unique @db.VarChar(16)
-  name        String
-  logoUrl     String?  @map("logo_url")
-  brandColor  String   @default("#e2136c") @map("brand_color") @db.VarChar(16)
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  code       String   @unique @db.VarChar(16)
+  name       String
+  logoUrl    String?  @map("logo_url")
+  brandColor String   @default("#e2136c") @map("brand_color") @db.VarChar(16)
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   deposits    DepositRequest[]
   withdrawals WithdrawalRequest[]
@@ -486,23 +508,23 @@ model Wallet {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
-  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions WalletTransaction[]
 
   @@map("wallets")
 }
 
 model WalletTransaction {
-  id             String           @id @default(uuid())
-  walletId       String           @map("wallet_id")
-  userId         String           @map("user_id")
-  type           WalletLedgerType
-  amount         Decimal          @db.Decimal(14, 2)
-  balanceAfter   Decimal          @map("balance_after") @db.Decimal(14, 2)
-  referenceType  String?          @map("reference_type") @db.VarChar(32)
-  referenceId    String?          @map("reference_id")
-  description    String?
-  createdAt      DateTime         @default(now()) @map("created_at")
+  id            String           @id @default(uuid())
+  walletId      String           @map("wallet_id")
+  userId        String           @map("user_id")
+  type          WalletLedgerType
+  amount        Decimal          @db.Decimal(14, 2)
+  balanceAfter  Decimal          @map("balance_after") @db.Decimal(14, 2)
+  referenceType String?          @map("reference_type") @db.VarChar(32)
+  referenceId   String?          @map("reference_id")
+  description   String?
+  createdAt     DateTime         @default(now()) @map("created_at")
 
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
@@ -520,6 +542,9 @@ model DepositRequest {
   amount               Decimal           @db.Decimal(14, 2)
   currency             String            @default("BDT") @db.VarChar(3)
   agentNumber          String            @map("agent_number") @db.VarChar(32)
+  // Number the player sent the money from. Any mobile number is accepted; it
+  // is only shown to staff to match the payment, never tied to the account.
+  senderPhone          String?           @map("sender_phone") @db.VarChar(20)
   transactionReference String            @map("transaction_reference") @db.VarChar(64)
   status               TransactionStatus @default(PENDING)
   adminNote            String?           @map("admin_note")
@@ -553,15 +578,78 @@ model WithdrawalRequest {
   processedAt     DateTime?         @map("processed_at")
   completedAt     DateTime?         @map("completed_at")
   reservationTxId String?           @unique @map("reservation_tx_id")
+  // Agent the payout is assigned to. Agents can only act on rows assigned to them.
+  assignedAgentId String?           @map("assigned_agent_id")
+  assignedById    String?           @map("assigned_by_id")
+  assignedAt      DateTime?         @map("assigned_at")
+  completedById   String?           @map("completed_by_id")
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 
-  user        User            @relation("UserWithdrawals", fields: [userId], references: [id], onDelete: Cascade)
-  provider    PaymentProvider @relation(fields: [providerId], references: [id])
-  processedBy User?           @relation("WithdrawalProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+  user          User            @relation("UserWithdrawals", fields: [userId], references: [id], onDelete: Cascade)
+  provider      PaymentProvider @relation(fields: [providerId], references: [id])
+  processedBy   User?           @relation("WithdrawalProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+  assignedAgent User?           @relation("WithdrawalAssignedAgent", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  assignedBy    User?           @relation("WithdrawalAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  completedBy   User?           @relation("WithdrawalCompleter", fields: [completedById], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([status, createdAt])
   @@index([providerId])
+  @@index([assignedAgentId, status])
   @@map("withdrawal_requests")
+}
+
+// ──────────────────────────────────────────────
+// Bonuses
+// ──────────────────────────────────────────────
+
+// A player's Telegram account, proven by the player opening our bot with a
+// one-time code issued to their session. One Telegram account per player and
+// one player per Telegram account.
+model TelegramLink {
+  id               String   @id @default(uuid())
+  userId           String   @unique @map("user_id")
+  telegramUserId   String   @unique @map("telegram_user_id") @db.VarChar(32)
+  telegramUsername String?  @map("telegram_username") @db.VarChar(64)
+  linkedAt         DateTime @default(now()) @map("linked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("telegram_links")
+}
+
+// One-time codes for the bot deep link. Only the SHA-256 of the code is stored.
+model TelegramLinkCode {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  codeHash  String    @unique @map("code_hash") @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("telegram_link_codes")
+}
+
+// A bonus paid to a player. The unique keys make each bonus payable once per
+// player and, for Telegram, once per Telegram account across all players.
+model BonusClaim {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  type           BonusType
+  amount         Decimal   @db.Decimal(14, 2)
+  currency       String    @default("BDT") @db.VarChar(3)
+  telegramUserId String?   @map("telegram_user_id") @db.VarChar(32)
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@unique([type, telegramUserId])
+  @@index([createdAt])
+  @@map("bonus_claims")
 }

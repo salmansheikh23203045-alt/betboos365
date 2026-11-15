@@ -31,8 +31,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         error = (resp.error as string) ?? exception.name;
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
-      error = exception.name;
+      // Unhandled errors (Prisma, runtime) carry file paths and database names:
+      // log them, never send them to the client.
+      this.logger.error(`${exception.name}: ${exception.message}`, exception.stack);
+      response.status(status).json({
+        success: false,
+        error: 'InternalServerError',
+        message,
+        statusCode: status,
+        timestamp: new Date().toISOString(),
+      });
+      return;
     }
 
     if (status >= 500) {

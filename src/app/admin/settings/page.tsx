@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS } from "@/lib/icons";
 
-export const metadata: Metadata = { title: "System Settings | TCL11 Admin" };
+export const metadata: Metadata = { title: "System Settings | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 /**
@@ -36,9 +36,8 @@ export default async function AdminSettingsPage() {
         <div className="flex items-start gap-3">
           <ICONS.Shield aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-tcl-gold" />
           <p className="text-[12px] text-tcl-muted">
-            Platform settings are configured through environment variables on
-            Vercel (frontend) and Railway (backend) rather than editable from
-            this screen. This keeps secrets out of the database and out of git.
+            Platform settings are configured through environment variables in
+            the hosting control panel rather than editable from this screen. This keeps secrets out of the database and out of git.
             Secret values are <strong className="text-tcl-white">never</strong> rendered here.
           </p>
         </div>
@@ -81,7 +80,15 @@ export default async function AdminSettingsPage() {
             status="unavailable"
             note="The search input in the topbar is visually present but non-functional. A real admin search needs a server-side search endpoint (users, transactions, games, …) with throttling and permission scoping. The `/` keyboard shortcut is unwired."
           />
-          <CapRow label="Transactions / Wallet / Finance / Reports" status="deferred" note="Deliberate — no fabricated financial numbers." />
+          <CapRow label="Deposit and withdrawal review (approve, reject, assign to agent, complete)" status="live" />
+          <CapRow label="Wallet ledger, finance overview and reports (computed from approved records only)" status="live" />
+          <CapRow label="Manual wallet adjustments (Admin / Super Admin, reason required, audited, idempotent)" status="live" />
+          <CapRow
+            label="Telegram community bonus (৳30, verified with the Telegram Bot API)"
+            status="live"
+            note="Claims stay switched off until the bot token, bot username, chat id and webhook secret are set. Status is shown on the Telegram Bonuses page."
+          />
+          <CapRow label="Agent commissions" status="deferred" note="No commission rules are defined for the business yet, so nothing is calculated." />
           <CapRow label="Sports/match odds editing" status="read-only" note="Sports data comes from a provider adapter; the admin UI is read-only until a licensed provider is signed." />
           <CapRow label="Game CRUD beyond toggle (new games, title/thumbnail edits)" status="deferred" note="Backend `PATCH /games/:id` supports partial updates; a dedicated admin form is a follow-up." />
           <CapRow label="Password reset / email verification" status="deferred" note="No mail gateway configured." />

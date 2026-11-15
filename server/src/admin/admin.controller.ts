@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Param,
   Body,
   UseGuards,
@@ -10,14 +11,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { UpdateUserRoleDto } from './dto';
+import { UpdateUserRoleDto, PhoneVerificationDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles, CurrentUser } from '../common/decorators';
-import { Role } from '../common/interfaces';
+import { Roles, CurrentUser, RequirePermissions } from '../common/decorators';
+import { Permission, Role } from '../common/interfaces';
 import { UsersService } from '../users/users.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '@prisma/client';
+import { parseRoles } from '../common/utils/roles';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -30,11 +32,13 @@ export class AdminController {
   ) {}
 
   @Get('dashboard')
+  @RequirePermissions(Permission.DASHBOARD_VIEW)
   getDashboardStats() {
     return this.adminService.getDashboardStats();
   }
 
   @Patch('users/:id/roles')
+  @RequirePermissions(Permission.USERS_MANAGE)
   async updateUserRoles(
     @Param('id') id: string,
     @Body() dto: UpdateUserRoleDto,
@@ -58,13 +62,19 @@ export class AdminController {
     if (!target) {
       throw new NotFoundException('User not found.');
     }
-    const targetIsSuper = target.roles.includes(Role.SUPER_ADMIN);
+    const targetRoles = parseRoles(target.roles) as Role[];
+    const targetIsSuper = targetRoles.includes(Role.SUPER_ADMIN);
 
     if (targetIsSuper && !actorIsSuper) {
       throw new ForbiddenException('Only Super Admin can modify a Super Admin.');
     }
+    // Managing Admin accounts belongs to Super Admin: an Admin cannot change
+    // another Admin's roles.
+    if (targetRoles.includes(Role.ADMIN) && !actorIsSuper) {
+      throw new ForbiddenException('Only Super Admin can modify an Admin.');
+    }
     if (!actorIsSuper) {
-      const grantingAdmin = dto.roles.includes(Role.ADMIN) && !target.roles.includes(Role.ADMIN);
+      const grantingAdmin = dto.roles.includes(Role.ADMIN) && !targetRoles.includes(Role.ADMIN);
       const grantingSuper = dto.roles.includes(Role.SUPER_ADMIN);
       if (grantingSuper) {
         throw new ForbiddenException('Only Super Admin can grant Super Admin.');
@@ -87,6 +97,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/deactivate')
+  @RequirePermissions(Permission.USERS_MANAGE)
   async deactivateUser(
     @Param('id') id: string,
     @CurrentUser() actor: { id: string; roles: Role[] },
@@ -98,8 +109,11 @@ export class AdminController {
     if (!target) {
       throw new NotFoundException('User not found.');
     }
-    if (target.roles.includes(Role.SUPER_ADMIN) && !actor.roles.includes(Role.SUPER_ADMIN)) {
+    if ((parseRoles(target.roles) as Role[]).includes(Role.SUPER_ADMIN) && !actor.roles.includes(Role.SUPER_ADMIN)) {
       throw new ForbiddenException('Only Super Admin can deactivate a Super Admin.');
+    }
+    if ((parseRoles(target.roles) as Role[]).includes(Role.ADMIN) && !actor.roles.includes(Role.SUPER_ADMIN)) {
+      throw new ForbiddenException('Only Super Admin can deactivate an Admin.');
     }
 
     const user = await this.usersService.deactivate(id);
@@ -110,7 +124,51 @@ export class AdminController {
     return this.usersService.toResponseDto(user);
   }
 
+  @Patch('users/:id/activate')
+  @RequirePermissions(Permission.USERS_MANAGE)
+  async activateUser(
+    @Param('id') id: string,
+    @CurrentUser() actor: { id: string; roles: Role[] },
+  ) {
+    const target = await this.usersService.findById(id);
+    if (!target) throw new NotFoundException('User not found.');
+    const roles = parseRoles(target.roles) as Role[];
+    if ((roles.includes(Role.SUPER_ADMIN) || roles.includes(Role.ADMIN)) && !actor.roles.includes(Role.SUPER_ADMIN)) {
+      throw new ForbiddenException('Only Super Admin can reactivate an Admin account.');
+    }
+    const user = await this.usersService.activate(id);
+    await this.auditService.log(AuditAction.ADMIN_ACTION, actor.id, {
+      action: 'user_activated',
+      targetUserId: id,
+    });
+    return this.usersService.toResponseDto(user);
+  }
+
+  /**
+   * Staff confirm that a player's registered phone number is theirs. Until
+   * this is done the player cannot withdraw. Setting `verified: false` revokes it.
+   */
+  @Post('users/:id/phone-verification')
+  @RequirePermissions(Permission.USERS_MANAGE)
+  async setPhoneVerification(
+    @Param('id') id: string,
+    @Body() dto: PhoneVerificationDto,
+    @CurrentUser() actor: { id: string },
+  ) {
+    if (actor.id === id) {
+      throw new ForbiddenException('You cannot verify your own phone number.');
+    }
+    const user = await this.usersService.setPhoneVerified(id, dto.verified);
+    await this.auditService.log(AuditAction.PHONE_VERIFIED, actor.id, {
+      targetUserId: id,
+      phone: user.phone,
+      verified: dto.verified,
+    });
+    return this.usersService.toResponseDto(user);
+  }
+
   @Get('audit-logs')
+  @RequirePermissions(Permission.AUDIT_VIEW)
   getAuditLogs() {
     return this.auditService.findAll();
   }

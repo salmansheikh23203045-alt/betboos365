@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Ip,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -11,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser, Public } from '../common/decorators';
+import { CurrentUser, PlayerOnly, Public } from '../common/decorators';
 import { WalletService } from './wallet.service';
 import { DepositsService } from './deposits.service';
 import { WithdrawalsService } from './withdrawals.service';
@@ -26,8 +27,11 @@ import { WALLET_CONFIG } from './wallet.config';
 import { providerView, depositView, withdrawalView } from './shape';
 import { TransactionStatus } from '@prisma/client';
 
+// Player wallet. Staff accounts (Admin, Sub Admin, Agent) have no wallet
+// features: @PlayerOnly() refuses them on every non-public route here.
 @Controller('wallet')
 @UseGuards(JwtAuthGuard)
+@PlayerOnly()
 export class WalletController {
   constructor(
     private readonly wallet: WalletService,
@@ -39,6 +43,12 @@ export class WalletController {
   @Get('me')
   async myWallet(@CurrentUser('id') userId: string) {
     return this.wallet.getBalance(userId);
+  }
+
+  /** The one number withdrawals can be paid to, and whether it is verified. */
+  @Get('payout-account')
+  async payoutAccount(@CurrentUser('id') userId: string) {
+    return this.withdrawals.payoutAccount(userId);
   }
 
   @Public()
@@ -168,6 +178,6 @@ export class WalletController {
       include: { provider: true },
     });
     if (withdrawal && withdrawal.userId === userId) return withdrawalView(withdrawal);
-    return { message: 'Transaction not found' };
+    throw new NotFoundException('Transaction not found');
   }
 }

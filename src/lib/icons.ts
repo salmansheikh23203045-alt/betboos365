@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  RefreshCw,
   Award,
   BookOpen,
   Calendar,
@@ -74,6 +75,7 @@ import {
  */
 export const ICONS = {
   ArrowRight,
+  RefreshCw,
   Award,
   BookOpen,
   Calendar,

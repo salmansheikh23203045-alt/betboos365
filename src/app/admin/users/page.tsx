@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { UserManagementClient } from "./UserManagementClient";
 
-export const metadata: Metadata = { title: "User Management | TCL11 Admin" };
+export const metadata: Metadata = { title: "User Management | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 export interface AdminUserRow {
@@ -58,6 +58,8 @@ export default async function AdminUsersPage({
       meta={result.meta ?? { page, limit, total: 0, totalPages: 0 }}
       currentUserId={session.id}
       isSuperAdmin={session.roles.includes("super_admin")}
+      canViewWallet={(session.permissions ?? []).includes("transactions.view")}
+      canAdjustWallet={(session.permissions ?? []).includes("wallet.adjust")}
     />
   );
 }

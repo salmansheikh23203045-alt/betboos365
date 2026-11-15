@@ -3,7 +3,7 @@ import { PageBanner } from "@/components/pages/PageBanner";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS } from "@/lib/icons";
 
-export const metadata: Metadata = { title: "About Us | TCL11" };
+export const metadata: Metadata = { title: "About Us | BetBoos365" };
 
 const VALUES = [
   { icon: "ShieldCheck" as const, title: "Safe & Secure", text: "Advanced encryption and security protocols protect your data and transactions at all times." },
@@ -15,18 +15,18 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <div className="animate-fade-in-up mx-auto max-w-[1280px] space-y-8 px-4 py-6 lg:px-6">
-      <PageBanner title="About Us" subtitle="The story behind TCL11" icon="Info" />
+      <PageBanner title="About Us" subtitle="The story behind BetBoos365" icon="Info" />
 
       <NeonCard as="section" className="space-y-4">
         <h2 className="font-display text-heading-lg uppercase text-gold-gradient">Who We Are</h2>
         <p className="text-body leading-relaxed text-tcl-muted">
-          TCL11 is a premier online gaming destination that brings together the best casino games, live dealers, sports betting,
+          BetBoos365 is a premier online gaming destination that brings together the best casino games, live dealers, sports betting,
           and esports under one roof. We are committed to providing a safe, fair, and thrilling gaming experience for players worldwide.
         </p>
         <p className="text-body leading-relaxed text-tcl-muted">
           Our platform features games from the industry&apos;s most respected providers, including Pragmatic Play, Evolution,
           JILI, PG Soft, and many more. Whether you prefer spinning the reels, playing against live dealers, or betting on
-          your favourite sports, TCL11 has something for everyone.
+          your favourite sports, BetBoos365 has something for everyone.
         </p>
       </NeonCard>
 
@@ -49,7 +49,7 @@ export default function AboutPage() {
       <NeonCard as="section" className="space-y-4">
         <h2 className="font-display text-heading-lg uppercase text-gold-gradient">Responsible Gaming</h2>
         <p className="text-body leading-relaxed text-tcl-muted">
-          At TCL11, we believe gaming should always be fun and entertaining. We encourage all players to gamble responsibly
+          At BetBoos365, we believe gaming should always be fun and entertaining. We encourage all players to gamble responsibly
           and offer tools to help you stay in control — including deposit limits, session reminders, and self-exclusion options.
           If you or someone you know has a gambling problem, please seek help.
         </p>

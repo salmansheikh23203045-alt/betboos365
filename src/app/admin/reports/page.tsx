@@ -5,8 +5,9 @@ import { readAccessToken } from "@/lib/auth-cookies";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS, type IconName } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
+import { formatBdt } from "@/lib/money";
 
-export const metadata: Metadata = { title: `${BN.admin.reports} | TCL11 Admin` };
+export const metadata: Metadata = { title: `${BN.admin.reports} | BetBoos365 Admin` };
 export const dynamic = "force-dynamic";
 
 interface DashboardStats {
@@ -24,6 +25,18 @@ interface FinanceSummary {
   withdrawals: { pending: number; approved: number; completed: number; rejected: number };
 }
 
+interface FinanceOverview {
+  allTime: {
+    deposits: { amount: number };
+    withdrawals: { amount: number };
+    netCashFlow: number;
+    bonuses: { amount: number; count: number };
+    adjustments: { credit: number; debit: number };
+  };
+  pending: { deposits: { amount: number }; withdrawals: { amount: number } };
+  playerBalances: { available: number; reserved: number };
+}
+
 async function getJson<T>(path: string, token: string) {
   const res = await backendFetch(path, { accessToken: token });
   if (!res.ok) return null;
@@ -33,9 +46,10 @@ async function getJson<T>(path: string, token: string) {
 
 export default async function AdminReportsPage() {
   const token = readAccessToken(await cookies()) ?? "";
-  const [dashboard, finance] = await Promise.all([
+  const [dashboard, finance, money] = await Promise.all([
     getJson<DashboardStats>("/admin/dashboard", token),
     getJson<FinanceSummary>("/admin/finance/summary", token),
+    getJson<FinanceOverview>("/admin/finance/overview?days=30", token),
   ]);
 
   return (
@@ -96,10 +110,30 @@ export default async function AdminReportsPage() {
         </div>
       </section>
 
+      {money ? (
+        <section className="space-y-3">
+          <h3 className="font-display text-heading-md uppercase text-tcl-gold">Money (BDT, all time)</h3>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <ReportTile label="Deposits approved" value={formatBdt(money.allTime.deposits.amount)} icon="ArrowDownCircle" tone="ok" />
+            <ReportTile label="Withdrawals paid" value={formatBdt(money.allTime.withdrawals.amount)} icon="ArrowUpCircle" />
+            <ReportTile label="Net cash flow" value={formatBdt(money.allTime.netCashFlow)} icon="TrendingUp" />
+            <ReportTile label="Wallet balances, players + agents (available + reserved)" value={formatBdt(money.playerBalances.available + money.playerBalances.reserved)} icon="Wallet" />
+            <ReportTile label="Pending deposits" value={formatBdt(money.pending.deposits.amount)} icon="ArrowDownCircle" tone="pending" />
+            <ReportTile label="Open withdrawals" value={formatBdt(money.pending.withdrawals.amount)} icon="ArrowUpCircle" tone="pending" />
+            <ReportTile label={`Bonuses paid (${money.allTime.bonuses.count})`} value={formatBdt(money.allTime.bonuses.amount)} icon="Gift" />
+            <ReportTile
+              label="Manual adjustments (credit / debit)"
+              value={`${formatBdt(money.allTime.adjustments.credit)} / ${formatBdt(money.allTime.adjustments.debit)}`}
+              icon="Settings"
+            />
+          </div>
+        </section>
+      ) : null}
+
       <NeonCard className="border-tcl-gold/40 bg-tcl-gold/5 text-caption text-tcl-muted">
         <p>
           রিপোর্ট বিস্তারিতভাবে দেখতে ও অনুমোদন/প্রত্যাখ্যান করতে{" "}
-          <a href="/admin/finance" className="text-tcl-gold hover:underline">
+          <a href="/admin/transactions" className="text-tcl-gold hover:underline">
             {BN.admin.walletFinance}
           </a>{" "}
           পৃষ্ঠায় যান। অডিট ট্রেইল{" "}
@@ -120,12 +154,14 @@ function ReportTile({
   tone,
 }: {
   label: string;
-  value: number | undefined;
+  value: number | string | undefined;
   icon: IconName;
   tone?: "pending" | "ok" | "rejected";
 }) {
   const displayValue =
-    typeof value === "number" && Number.isFinite(value) ? value.toLocaleString() : "—";
+    typeof value === "string" ? value
+    : typeof value === "number" && Number.isFinite(value) ? value.toLocaleString()
+    : "—";
   const Icon = ICONS[icon];
   const toneClass =
     tone === "pending"

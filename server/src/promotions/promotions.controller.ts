@@ -11,10 +11,10 @@ import {
 } from '@nestjs/common';
 import { PromotionsService } from './promotions.service';
 import { CreatePromotionDto, UpdatePromotionDto } from './dto';
-import { Public, Roles } from '../common/decorators';
+import { Public, Roles, RequirePermissions } from '../common/decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Role } from '../common/interfaces';
+import { Permission, Role } from '../common/interfaces';
 
 @Controller('promotions')
 export class PromotionsController {
@@ -37,6 +37,7 @@ export class PromotionsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @RequirePermissions(Permission.CONTENT_MANAGE)
   create(@Body() dto: CreatePromotionDto) {
     return this.promotionsService.create(dto);
   }
@@ -44,6 +45,7 @@ export class PromotionsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @RequirePermissions(Permission.CONTENT_MANAGE)
   update(@Param('id') id: string, @Body() dto: UpdatePromotionDto) {
     return this.promotionsService.update(id, dto);
   }
@@ -51,6 +53,7 @@ export class PromotionsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @RequirePermissions(Permission.CONTENT_MANAGE)
   remove(@Param('id') id: string) {
     return this.promotionsService.remove(id);
   }

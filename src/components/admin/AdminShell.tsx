@@ -22,7 +22,6 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isSuperAdmin = user.roles.includes("super_admin");
 
   return (
     // `data-admin-shell` is a CSS marker the root layout's global rules key
@@ -31,7 +30,6 @@ export function AdminShell({
     <div data-admin-shell="true" className="min-h-dvh bg-tcl-black text-tcl-white">
       <AdminSidebar
         user={user}
-        isSuperAdmin={isSuperAdmin}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />

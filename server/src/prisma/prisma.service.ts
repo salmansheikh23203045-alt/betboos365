@@ -17,8 +17,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
-    await this.$connect();
-    this.logger.log('Database connection established');
+    try {
+      await this.$connect();
+      this.logger.log('Database connection established');
+    } catch (err) {
+      // Don't crash Nest on startup when the DB is temporarily unreachable —
+      // let /api/v1/health surface the real error instead. Prisma will retry
+      // lazily on the next query.
+      this.logger.error(
+        `Database connection failed on startup: ${(err as Error).message}. ` +
+          'The server will keep running; /api/v1/health will report status=error until the DB is reachable.',
+      );
+    }
   }
 
   async onModuleDestroy() {

@@ -10,6 +10,7 @@ import { SecurityPanel } from "@/components/profile/SecurityPanel";
 import { SecurityScoreCard } from "@/components/profile/SecurityScoreCard";
 import { MobileProfileHome } from "@/components/profile/MobileProfileHome";
 import { fetchMyWallet } from "@/lib/wallet-client";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import type { WalletView } from "@/types/wallet";
 import { BN } from "@/i18n/bn";
 
@@ -79,6 +80,22 @@ export function ProfileClient({
               hasEmail={Boolean(user.email)}
               onLogout={handleLogout}
             />
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4">
+            <PrimaryButton
+              href="/profile/deposit"
+              icon="ArrowDownCircle"
+              className="py-6 text-lg uppercase font-display"
+            >
+              {BN.wallet.depositFunds}
+            </PrimaryButton>
+            <PrimaryButton
+              href="/profile/withdraw"
+              icon="ArrowUpCircle"
+              className="py-6 text-lg uppercase font-display"
+            >
+              {BN.wallet.withdrawFunds}
+            </PrimaryButton>
           </div>
         </UserCenterShell>
       </div>

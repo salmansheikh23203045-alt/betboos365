@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ICONS } from "@/lib/icons";
 import type { SessionUser } from "@/components/auth/AuthProvider";
+import { isRestrictedStaff, roleLabel as roleLabelFor } from "@/lib/roles";
 
 export function AdminTopbar({
   user,
@@ -17,9 +18,10 @@ export function AdminTopbar({
   const [menuOpen, setMenuOpen] = useState(false);
   const { logout } = useAuth();
   const router = useRouter();
-  const isSuperAdmin = user.roles.includes("super_admin");
-  const roleLabel = isSuperAdmin ? "Super Admin" : "Admin";
-  const displayEmail = user.email ?? `${user.username}@tcl11`;
+  const roleLabel = roleLabelFor(user.roles);
+  // Admin and Sub Admin accounts have no profile page.
+  const hasProfile = !isRestrictedStaff(user.roles);
+  const displayEmail = user.email ?? `${user.username}@betboos365`;
 
   async function handleLogout() {
     setMenuOpen(false);
@@ -110,12 +112,14 @@ export function AdminTopbar({
               className="absolute right-0 top-11 w-56 overflow-hidden rounded-md border border-tcl-border-muted bg-tcl-surface-1 shadow-lg"
             >
               <div className="border-b border-tcl-border-muted px-3 py-2">
-                <p className="text-sm font-semibold text-tcl-white">{user.firstName} {user.lastName}</p>
+                <p className="text-sm font-semibold text-tcl-white">{user.firstName}</p>
                 <p className="truncate text-[11px] text-tcl-muted">@{user.username}</p>
               </div>
-              <Link href="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-tcl-white hover:bg-tcl-surface-2" role="menuitem">
-                আমার প্রোফাইল
-              </Link>
+              {hasProfile ? (
+                <Link href="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-tcl-white hover:bg-tcl-surface-2" role="menuitem">
+                  আমার প্রোফাইল
+                </Link>
+              ) : null}
               <Link href="/" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-tcl-white hover:bg-tcl-surface-2" role="menuitem">
                 সাইটে ফিরে যান
               </Link>

@@ -7,9 +7,13 @@ import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { ICONS } from "@/lib/icons";
 import { cn } from "@/lib/cn";
 import { ProviderLogo } from "./ProviderLogo";
+import { notifyWalletChanged } from "@/components/wallet/WalletBalanceProvider";
+import { RegisteredNumberNotice } from "@/components/wallet/RegisteredNumberNotice";
 import {
   createWithdrawal,
   fetchMyWallet,
+  fetchPayoutAccount,
+  type PayoutAccount,
   fetchWalletConfig,
   fetchWalletProviders,
 } from "@/lib/wallet-client";
@@ -18,8 +22,6 @@ import type {
   WalletConfig,
   WalletView,
 } from "@/types/wallet";
-
-const BD_PHONE = /^(?:\+?8801|01)[3-9]\d{8}$/;
 
 export function WithdrawModal({
   open,
@@ -36,7 +38,10 @@ export function WithdrawModal({
   const [loadingMeta, setLoadingMeta] = useState(false);
 
   const [provider, setProvider] = useState<PaymentProvider | null>(null);
-  const [phone, setPhone] = useState("");
+  // Withdrawals always go to the account's verified registered number. It is
+  // shown read-only; the server ignores any number a client might send.
+  const [payout, setPayout] = useState<PayoutAccount | null>(null);
+  const phone = payout?.phone ?? "";
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +50,9 @@ export function WithdrawModal({
   useEffect(() => {
     if (!open) return;
     setLoadingMeta(true);
+    fetchPayoutAccount().then((res) => {
+      if (res.ok) setPayout(res.data);
+    });
     Promise.all([fetchWalletConfig(), fetchWalletProviders(), fetchMyWallet()])
       .then(([cfg, prv, w]) => {
         if (cfg.ok) setConfig(cfg.data);
@@ -57,7 +65,6 @@ export function WithdrawModal({
   useEffect(() => {
     if (!open) {
       setProvider(null);
-      setPhone("");
       setAmount("");
       setError(null);
       setSuccess(false);
@@ -65,7 +72,7 @@ export function WithdrawModal({
   }, [open]);
 
   const amountNumber = useMemo(() => Number.parseFloat(amount), [amount]);
-  const phoneValid = BD_PHONE.test(phone);
+  const phoneValid = payout?.verified === true;
   const amountValid =
     config !== null &&
     Number.isFinite(amountNumber) &&
@@ -80,7 +87,6 @@ export function WithdrawModal({
     setError(null);
     const res = await createWithdrawal({
       providerCode: provider.code,
-      receivingPhone: phone.trim(),
       amount: amountNumber,
     });
     setSubmitting(false);
@@ -90,6 +96,7 @@ export function WithdrawModal({
     }
     setSuccess(true);
     onSubmitted?.();
+    notifyWalletChanged();
     // Refresh wallet so the user sees the reserved amount move.
     const w = await fetchMyWallet();
     if (w.ok) setWallet(w.data);
@@ -156,35 +163,7 @@ export function WithdrawModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="wd-phone" className="text-caption font-semibold text-tcl-white">
-              Your Receiving Phone Number
-            </label>
-            <div className="relative">
-              <ICONS.Phone
-                aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-tcl-muted"
-              />
-              <input
-                id="wd-phone"
-                type="tel"
-                inputMode="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.trim())}
-                placeholder="01XXXXXXXXX"
-                className="h-11 w-full rounded-md border border-tcl-border-muted bg-tcl-surface-2 pl-10 pr-4 text-sm text-tcl-white placeholder:text-tcl-muted focus:border-tcl-gold focus:outline-none"
-              />
-            </div>
-            {phone && !phoneValid ? (
-              <p className="text-[11px] text-tcl-red-bright">
-                Enter a valid Bangladeshi mobile number (e.g. 01712345678).
-              </p>
-            ) : (
-              <p className="text-[11px] text-tcl-muted">
-                The payout will be sent to this number. Must match your {provider?.name ?? "provider"} account.
-              </p>
-            )}
-          </div>
+          <RegisteredNumberNotice payout={payout} />
 
           <div className="space-y-1.5">
             <label htmlFor="wd-amount" className="text-caption font-semibold text-tcl-white">
@@ -225,8 +204,8 @@ export function WithdrawModal({
             </div>
           ) : null}
 
-          <div className="flex justify-between gap-3 pt-1">
-            <SecondaryButton onClick={onClose} size="md" disabled={submitting}>
+          <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-1">
+            <SecondaryButton onClick={onClose} size="md" disabled={submitting} className="w-full sm:w-auto">
               Cancel
             </SecondaryButton>
             <PrimaryButton
@@ -234,6 +213,7 @@ export function WithdrawModal({
               disabled={!canSubmit}
               size="md"
               icon={submitting ? undefined : "Send"}
+              className="w-full sm:w-auto"
             >
               {submitting ? "Submitting…" : "Submit Withdrawal Request"}
             </PrimaryButton>

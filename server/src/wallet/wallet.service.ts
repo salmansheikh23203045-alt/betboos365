@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { Prisma, WalletLedgerType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WALLET_CONFIG } from './wallet.config';
@@ -66,6 +66,53 @@ export class WalletService {
   }
 
   /**
+   * Lock the wallet row for the rest of the transaction and return its latest
+   * committed balances.
+   *
+   * MySQL's default isolation (REPEATABLE READ) serves plain SELECTs from a
+   * snapshot taken at the transaction's first read, so a balance or version
+   * read with findUnique() can be stale while another request is changing the
+   * same wallet. A locking read (FOR UPDATE) always sees the latest committed
+   * row and makes concurrent mutations of one wallet run one after another.
+   * Every balance change goes through here.
+   */
+  private async lock(tx: Tx, userId: string) {
+    const rows = await tx.$queryRaw<{ id: string; available: unknown; reserved: unknown }[]>`
+      SELECT id, available_balance AS available, reserved_balance AS reserved
+      FROM wallets WHERE user_id = ${userId} FOR UPDATE`;
+    if (!rows[0]) throw new NotFoundException('Wallet not found');
+    return { id: rows[0].id, available: Number(rows[0].available), reserved: Number(rows[0].reserved) };
+  }
+
+  /** Re-read after this transaction's own write (always visible to it). */
+  private after(tx: Tx, walletId: string) {
+    return tx.wallet.findUniqueOrThrow({ where: { id: walletId } });
+  }
+
+  private ledger(
+    tx: Tx,
+    walletId: string,
+    userId: string,
+    type: WalletLedgerType,
+    amount: Prisma.Decimal | number,
+    balanceAfter: Prisma.Decimal,
+    ref?: { type: string; id: string; description?: string },
+  ) {
+    return tx.walletTransaction.create({
+      data: {
+        walletId,
+        userId,
+        type,
+        amount: amount as Prisma.Decimal,
+        balanceAfter,
+        referenceType: ref?.type,
+        referenceId: ref?.id,
+        description: ref?.description,
+      },
+    });
+  }
+
+  /**
    * Credit available balance and write a ledger entry. MUST be called inside
    * an existing Prisma transaction so the mutation and the ledger write are
    * atomic. Returns the new balance.
@@ -77,27 +124,13 @@ export class WalletService {
     type: WalletLedgerType,
     ref?: { type: string; id: string; description?: string },
   ): Promise<Prisma.Decimal> {
-    const wallet = await tx.wallet.findUnique({ where: { userId } });
-    if (!wallet) throw new NotFoundException('Wallet not found');
-    const updated = await tx.wallet.update({
-      where: { id: wallet.id },
-      data: {
-        availableBalance: { increment: amount as any },
-        version: { increment: 1 },
-      },
+    const w = await this.lock(tx, userId);
+    await tx.wallet.update({
+      where: { id: w.id },
+      data: { availableBalance: { increment: amount as Prisma.Decimal }, version: { increment: 1 } },
     });
-    await tx.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        userId,
-        type,
-        amount: amount as any,
-        balanceAfter: updated.availableBalance,
-        referenceType: ref?.type,
-        referenceId: ref?.id,
-        description: ref?.description,
-      },
-    });
+    const updated = await this.after(tx, w.id);
+    await this.ledger(tx, w.id, userId, type, amount, updated.availableBalance, ref);
     return updated.availableBalance;
   }
 
@@ -112,34 +145,20 @@ export class WalletService {
     amount: number,
     ref: { type: string; id: string; description?: string },
   ): Promise<{ newAvailable: number; ledgerId: string }> {
-    const wallet = await tx.wallet.findUnique({ where: { userId } });
-    if (!wallet) throw new NotFoundException('Wallet not found');
-    if (Number(wallet.availableBalance) < amount) {
-      throw new InsufficientBalanceError();
-    }
-    const updated = await tx.wallet.update({
-      where: {
-        id: wallet.id,
-        version: wallet.version, // optimistic lock
-      },
+    const w = await this.lock(tx, userId);
+    if (w.available < amount) throw new InsufficientBalanceError();
+    // Conditional as well as locked: the balance can never go below zero.
+    const moved = await tx.wallet.updateMany({
+      where: { id: w.id, availableBalance: { gte: amount } },
       data: {
         availableBalance: { decrement: amount },
         reservedBalance: { increment: amount },
         version: { increment: 1 },
       },
     });
-    const entry = await tx.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        userId,
-        type: WalletLedgerType.WITHDRAWAL_RESERVE,
-        amount,
-        balanceAfter: updated.availableBalance,
-        referenceType: ref.type,
-        referenceId: ref.id,
-        description: ref.description,
-      },
-    });
+    if (moved.count !== 1) throw new InsufficientBalanceError();
+    const updated = await this.after(tx, w.id);
+    const entry = await this.ledger(tx, w.id, userId, WalletLedgerType.WITHDRAWAL_RESERVE, amount, updated.availableBalance, ref);
     return { newAvailable: Number(updated.availableBalance), ledgerId: entry.id };
   }
 
@@ -152,34 +171,27 @@ export class WalletService {
     amount: number,
     ref: { type: string; id: string; description?: string },
   ): Promise<number> {
-    const wallet = await tx.wallet.findUnique({ where: { userId } });
-    if (!wallet) throw new NotFoundException('Wallet not found');
-    const updated = await tx.wallet.update({
-      where: { id: wallet.id },
+    const w = await this.lock(tx, userId);
+    const moved = await tx.wallet.updateMany({
+      where: { id: w.id, reservedBalance: { gte: amount } },
       data: {
         availableBalance: { increment: amount },
         reservedBalance: { decrement: amount },
         version: { increment: 1 },
       },
     });
-    await tx.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        userId,
-        type: WalletLedgerType.WITHDRAWAL_RELEASE,
-        amount,
-        balanceAfter: updated.availableBalance,
-        referenceType: ref.type,
-        referenceId: ref.id,
-        description: ref.description,
-      },
-    });
+    if (moved.count !== 1) {
+      this.logger.error(`Reserved balance below release amount for wallet ${w.id}`);
+      throw new ReservationMismatchError();
+    }
+    const updated = await this.after(tx, w.id);
+    await this.ledger(tx, w.id, userId, WalletLedgerType.WITHDRAWAL_RELEASE, amount, updated.availableBalance, ref);
     return Number(updated.availableBalance);
   }
 
   /**
    * Debit the reservation (admin completed withdrawal). Reduces reserved,
-   * leaving available unchanged.
+   * leaving available unchanged. Refuses to pay out money that is not held.
    */
   async debitReservation(
     tx: Tx,
@@ -187,27 +199,17 @@ export class WalletService {
     amount: number,
     ref: { type: string; id: string; description?: string },
   ): Promise<void> {
-    const wallet = await tx.wallet.findUnique({ where: { userId } });
-    if (!wallet) throw new NotFoundException('Wallet not found');
-    const updated = await tx.wallet.update({
-      where: { id: wallet.id },
-      data: {
-        reservedBalance: { decrement: amount },
-        version: { increment: 1 },
-      },
+    const w = await this.lock(tx, userId);
+    const moved = await tx.wallet.updateMany({
+      where: { id: w.id, reservedBalance: { gte: amount } },
+      data: { reservedBalance: { decrement: amount }, version: { increment: 1 } },
     });
-    await tx.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        userId,
-        type: WalletLedgerType.WITHDRAWAL_DEBIT,
-        amount,
-        balanceAfter: updated.availableBalance,
-        referenceType: ref.type,
-        referenceId: ref.id,
-        description: ref.description,
-      },
-    });
+    if (moved.count !== 1) {
+      this.logger.error(`Reserved balance below payout amount for wallet ${w.id}`);
+      throw new ReservationMismatchError();
+    }
+    const updated = await this.after(tx, w.id);
+    await this.ledger(tx, w.id, userId, WalletLedgerType.WITHDRAWAL_DEBIT, amount, updated.availableBalance, ref);
   }
 
   private toView(w: {
@@ -227,6 +229,17 @@ export class WalletService {
       reservedBalance: reserved,
       totalBalance: available + reserved,
     };
+  }
+}
+
+/**
+ * The reserved balance does not cover a release or payout: the books and the
+ * request disagree. The operation is refused rather than letting the reserved
+ * balance go negative.
+ */
+export class ReservationMismatchError extends ConflictException {
+  constructor() {
+    super('The reserved balance does not cover this withdrawal. Nothing was changed; please contact a Super Admin.');
   }
 }
 

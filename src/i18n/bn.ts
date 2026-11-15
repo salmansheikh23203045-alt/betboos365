@@ -1,8 +1,8 @@
-// Centralised Bangla UI strings for TCL11.
+// Centralised Bangla UI strings for BetBoos365.
 // We keep things flat and typed instead of pulling in i18next: the site is
 // single-locale (bn-primary, en-fallback for technical/brand terms) and a
 // plain object compiles to zero runtime cost. Any string that ships to the
-// user goes here; brand names (TCL11, bKash, Nagad) and game titles stay
+// user goes here; brand names (BetBoos365, bKash, Nagad) and game titles stay
 // in English per the 70/30 rule.
 
 export const BN = {
@@ -202,7 +202,7 @@ export const BN = {
     games: "গেমস",
     helpSupport: "সাহায্য ও সাপোর্ট",
     company: "কোম্পানি",
-    copyright: "© ২০২৬ TCL11 — সর্বস্বত্ব সংরক্ষিত",
+    copyright: "© ২০২৬ BetBoos365 — সর্বস্বত্ব সংরক্ষিত",
     ageNote: "১৮+ — দায়িত্বশীলভাবে খেলুন।",
   },
   admin: {
@@ -211,6 +211,7 @@ export const BN = {
     userManagement: "ইউজার ম্যানেজমেন্ট",
     adminMgmt: "অ্যাডমিন",
     rolesPermissions: "রোল ও অনুমতি",
+    agentManagement: "এজেন্ট ম্যানেজমেন্ট",
     gamesProviders: "গেম ও প্রোভাইডার",
     sportsMatches: "স্পোর্টস ও ম্যাচ",
     promotions: "প্রোমোশন",
@@ -430,7 +431,7 @@ export const BN = {
     importantNoticeTitle: "গুরুত্বপূর্ণ নোটিশ",
     noticeHeading1: "১. ৩০-মিনিটের প্রতিশ্রুতি",
     noticeBody1:
-      "ডিপোজিট আটকে গেছে? ৩০ মিনিটের বেশি সময় লাগলে, ডিপোজিট পৌঁছানোর সঙ্গে সঙ্গেই TCL11 আপনার ওয়ালেটে বোনাস যোগ করবে। কোনো দৌড়াদৌড়ি নয়, কোনো প্রশ্ন নয়।",
+      "ডিপোজিট আটকে গেছে? ৩০ মিনিটের বেশি সময় লাগলে, ডিপোজিট পৌঁছানোর সঙ্গে সঙ্গেই BetBoos365 আপনার ওয়ালেটে বোনাস যোগ করবে। কোনো দৌড়াদৌড়ি নয়, কোনো প্রশ্ন নয়।",
     noticeHeading2: "২. ৭-দিনের অটো ক্ষতিপূরণ",
     noticeBody2:
       "৭ দিন পরেও যদি ডিপোজিট পেন্ডিং থাকে, আপনি স্বয়ংক্রিয়ভাবে পুরো অর্থ ফেরত পাবেন।",
@@ -453,7 +454,7 @@ export const BN = {
     understood: "বুঝেছি",
     registrationSuccessTitle: "রেজিস্ট্রেশন সফল",
     successIntro:
-      "TCL11-এ স্বাগতম — দক্ষিণ এশিয়ার সবচেয়ে বিশ্বস্ত অনলাইন ক্যাসিনো ও স্পোর্টস প্ল্যাটফর্ম। আমরা ক্রিকেট এক্সচেঞ্জ, স্পোর্টসবুক, লাইভ ক্যাসিনো এবং স্লট গেম অফার করি। সর্বশেষ প্রচার ও খবর পেতে সোশ্যাল মিডিয়াতে TCL11-এর সাথে সংযুক্ত হন।",
+      "BetBoos365-এ স্বাগতম — দক্ষিণ এশিয়ার সবচেয়ে বিশ্বস্ত অনলাইন ক্যাসিনো ও স্পোর্টস প্ল্যাটফর্ম। আমরা ক্রিকেট এক্সচেঞ্জ, স্পোর্টসবুক, লাইভ ক্যাসিনো এবং স্লট গেম অফার করি। সর্বশেষ প্রচার ও খবর পেতে সোশ্যাল মিডিয়াতে BetBoos365-এর সাথে সংযুক্ত হন।",
     successNextStep:
       "আপনার বাজি অভিজ্ঞতা শুরু করতে, আমরা আপনাকে ডিপোজিট পেজে পুনির্দেশিত করব। যদি এটি নির্দেশিত না হয় তবে নীচের বোতামে ক্লিক করুন।",
     depositNow: "এখনই জমা দিন",

@@ -8,16 +8,16 @@ import { ICONS } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
 
 export const metadata: Metadata = {
-  title: `${BN.responsibleGaming.title} | TCL11`,
+  title: `${BN.responsibleGaming.title} | BetBoos365`,
   description:
-    "দায়িত্বশীল গেমিং সম্পর্কে TCL11-এর নীতি, নিয়ম ও সহায়তার উৎস।",
+    "দায়িত্বশীল গেমিং সম্পর্কে BetBoos365-এর নীতি, নিয়ম ও সহায়তার উৎস।",
 };
 
 const PRINCIPLES: { title: string; body: string; icon: "ShieldCheck" | "Clock" | "Users" | "AlertTriangle" }[] = [
   {
     icon: "ShieldCheck",
     title: "১৮+ বয়স যাচাইকরণ",
-    body: "শুধুমাত্র ১৮ বছর বা তার বেশি বয়সের প্রাপ্তবয়স্কদের TCL11-এ অ্যাকাউন্ট খুলতে ও গেম খেলতে অনুমতি দেওয়া হয়।",
+    body: "শুধুমাত্র ১৮ বছর বা তার বেশি বয়সের প্রাপ্তবয়স্কদের BetBoos365-এ অ্যাকাউন্ট খুলতে ও গেম খেলতে অনুমতি দেওয়া হয়।",
   },
   {
     icon: "Clock",
@@ -137,7 +137,7 @@ export default function ResponsibleGamingPage() {
       </NeonCard>
 
       <p className="text-center text-[11px] text-tcl-muted">
-        TCL11 দায়িত্বশীল গেমিং-কে সমর্থন করে। নিয়ম ও শর্তাবলীর বিস্তারিত পড়ুন{" "}
+        BetBoos365 দায়িত্বশীল গেমিং-কে সমর্থন করে। নিয়ম ও শর্তাবলীর বিস্তারিত পড়ুন{" "}
         <Link href="/terms" className="text-tcl-gold hover:underline">
           {BN.nav.terms}
         </Link>{" "}

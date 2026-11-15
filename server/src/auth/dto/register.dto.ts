@@ -18,15 +18,15 @@ export class RegisterDto {
   })
   username!: string;
 
+  @IsOptional()
   @IsString()
-  @MinLength(2)
   @MaxLength(50)
-  firstName!: string;
+  firstName?: string;
 
+  @IsOptional()
   @IsString()
-  @MinLength(2)
   @MaxLength(50)
-  lastName!: string;
+  lastName?: string;
 
   @IsOptional()
   @IsEmail()
@@ -41,10 +41,13 @@ export class RegisterDto {
   })
   password!: string;
 
-  @IsOptional()
+  // Bangladeshi mobile number, required: it becomes the account's registered
+  // number, the only number withdrawals can be paid to once verified.
   @IsString()
-  @Matches(/^\+?[1-9]\d{6,14}$/, { message: 'Invalid phone number format' })
-  phone?: string;
+  @Matches(/^(?:\+?880|0)?1[3-9]\d{8}$/, {
+    message: 'Enter a valid Bangladeshi mobile number',
+  })
+  phone!: string;
 
   @IsBoolean()
   acceptTerms!: boolean;

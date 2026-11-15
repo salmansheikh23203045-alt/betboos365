@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<title>Volleyball</title>
+<defs><radialGradient id="glow" cx="50%" cy="46%" r="50%"><stop offset="0" stop-color="#ffb52e" stop-opacity=".55"/><stop offset=".55" stop-color="#ff3d14" stop-opacity=".22"/><stop offset="1" stop-color="#ff1a00" stop-opacity="0"/></radialGradient><radialGradient id="rim" cx="50%" cy="50%" r="50%"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".35" stop-color="#ffc21a"/><stop offset=".7" stop-color="#c98a00"/><stop offset="1" stop-color="#ffdd6b"/></linearGradient><radialGradient id="shadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><radialGradient id="ball" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#f1f1f1"/><stop offset="1" stop-color="#b9b9b9"/></radialGradient>
+<linearGradient id="vy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe066"/><stop offset=".6" stop-color="#ffc21a"/><stop offset="1" stop-color="#d99400"/></linearGradient>
+<linearGradient id="vb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3f7bff"/><stop offset=".6" stop-color="#1f4fd6"/><stop offset="1" stop-color="#14318f"/></linearGradient></defs>
+<circle cx="60" cy="52" r="56" fill="url(#glow)"/>
+<ellipse cx="60" cy="84" rx="26.35" ry="4" fill="url(#shadow)"/>
+<g><circle cx="60" cy="50" r="31" fill="url(#ball)"/>
+<g transform="translate(22.8 12.8) scale(3.1)"><path d="M11 7A13 13 0 0 1 12 2A10 10 0 0 1 21.98 11.362A16 16 0 0 0 11 7Z" fill="url(#vy)"/><path d="M16.83 13.634A13 13 0 0 1 20.66 17A10 10 0 0 1 7.563 20.962A16 16 0 0 0 16.83 13.634Z" fill="url(#vb)"/><path d="M8.17 15.366A13 13 0 0 1 3.34 17A10 10 0 0 1 6.457 3.676A16 16 0 0 0 8.17 15.366Z" fill="url(#vy)"/>
+<path d="M11 7a16 16 0 0 1 10.98 4.362M12 12a13 13 0 0 1-8.66 5M16.83 13.634a16 16 0 0 1-9.267 7.328M20.66 17A13 13 0 0 0 12 12a13 13 0 0 1 0-10M8.17 15.366a16 16 0 0 1-1.713-11.69" fill="none" stroke="#3a2a1a" stroke-opacity=".75" stroke-width=".5" stroke-linecap="round"/></g>
+<circle cx="60" cy="50" r="31" fill="url(#rim)"/>
+<ellipse cx="48.84" cy="36.36" rx="9.3" ry="5.27" transform="rotate(-35 48.84 36.36)" fill="#fff" opacity=".55"/>
+<circle cx="60" cy="50" r="30.5" fill="none" stroke="#1a0606" stroke-opacity=".55" stroke-width="1"/></g>
+<path d="M16 18Q16.8 21.2 20 22Q16.8 22.8 16 26Q15.2 22.8 12 22Q15.2 21.2 16 18Z" fill="#fff3c4" opacity="0.9"/><path d="M104 70.8Q104.64 73.36 107.2 74Q104.64 74.64 104 77.2Q103.36 74.64 100.8 74Q103.36 73.36 104 70.8Z" fill="#fff3c4" opacity="0.9"/><path d="M100 19.4Q100.52 21.48 102.6 22Q100.52 22.52 100 24.6Q99.48 22.52 97.4 22Q99.48 21.48 100 19.4Z" fill="#fff3c4" opacity="0.9"/>
+</svg>

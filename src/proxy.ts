@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/auth-cookies";
+import { canUseAdminDashboard, homeFor, isAgent, isRestrictedStaff, isSuperAdmin } from "@/lib/roles";
 
 /**
  * Edge-runtime RBAC gate (Next.js 16 `proxy.ts` convention).
  *
- * - /profile/*  → requires any valid session cookie
- * - /admin/*    → requires the access token to carry the `admin` or
- *                 `super_admin` role
+ * - /admin/*    → Admin, Super Admin or Sub Admin
+ * - /agent/*    → Agent
+ * - /change-password → any signed-in account; an account still on a
+ *                 temporary password is sent here from every gated path
+ * - /profile/*  → any signed-in player; Admin, Sub Admin and Agent accounts
+ *                 have no profile and are sent to their own dashboard
  *
  * We only inspect the JWT payload here (no network/DB call from the edge),
  * which is fine for a first-line gate: every protected server component and
@@ -31,41 +35,57 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   }
 }
 
-function hasAdminRole(payload: Record<string, unknown> | null): boolean {
-  if (!payload) return false;
-  const roles = payload.roles;
-  if (!Array.isArray(roles)) return false;
-  return roles.includes("admin") || roles.includes("super_admin");
+function rolesOf(payload: Record<string, unknown> | null): string[] | null {
+  if (!payload || !Array.isArray(payload.roles)) return null;
+  return payload.roles.filter((r): r is string => typeof r === "string");
 }
 
 export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const at = req.cookies.get(ACCESS_COOKIE)?.value;
   const rt = req.cookies.get(REFRESH_COOKIE)?.value;
-  const hasSession = Boolean(at || rt);
+  if (!at && !rt) return redirectToLogin(req, pathname + search);
+
+  const roles = at ? rolesOf(decodeJwtPayload(at)) : null;
+  // No readable access token but a refresh token: the server layer refreshes and re-checks.
+  if (!roles) return rt ? pass(req, pathname) : redirectToLogin(req, pathname + search);
+
+  // Temporary password: only the change form is reachable (the API enforces the same).
+  const mustChange = decodeJwtPayload(at!)?.pwc === true;
+  if (pathname === "/change-password") return pass(req, pathname);
+  if (mustChange) return redirectTo(req, "/change-password");
 
   if (pathname.startsWith("/admin")) {
-    if (!hasSession) return redirectToLogin(req, pathname + search);
-    const payload = at ? decodeJwtPayload(at) : null;
-    if (!payload) {
-      if (!rt) return redirectToLogin(req, pathname + search);
-      return NextResponse.next();
-    }
-    if (!hasAdminRole(payload)) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
-    return NextResponse.next();
+    if (!canUseAdminDashboard(roles)) return redirectTo(req, isAgent(roles) ? "/agent" : "/");
+    return pass(req, pathname);
   }
 
-  if (pathname.startsWith("/profile")) {
-    if (!hasSession) return redirectToLogin(req, pathname + search);
-    return NextResponse.next();
+  if (pathname.startsWith("/agent")) {
+    if (!isAgent(roles) || isSuperAdmin(roles)) {
+      return redirectTo(req, canUseAdminDashboard(roles) ? "/admin" : "/");
+    }
+    return pass(req, pathname);
   }
 
-  return NextResponse.next();
+  if (pathname.startsWith("/profile") && isRestrictedStaff(roles)) {
+    return redirectTo(req, homeFor(roles));
+  }
+
+  return pass(req, pathname);
+}
+
+/** Forward the pathname so server layouts can gate per section. */
+function pass(req: NextRequest, pathname: string) {
+  const headers = new Headers(req.headers);
+  headers.set("x-pathname", pathname);
+  return NextResponse.next({ request: { headers } });
+}
+
+function redirectTo(req: NextRequest, pathname: string) {
+  const url = req.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  return NextResponse.redirect(url);
 }
 
 function redirectToLogin(req: NextRequest, next: string) {
@@ -76,5 +96,5 @@ function redirectToLogin(req: NextRequest, next: string) {
 }
 
 export const config = {
-  matcher: ["/profile/:path*", "/admin/:path*"],
+  matcher: ["/profile/:path*", "/admin/:path*", "/agent/:path*", "/change-password"],
 };

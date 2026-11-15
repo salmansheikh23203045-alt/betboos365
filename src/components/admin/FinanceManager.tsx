@@ -25,9 +25,18 @@ const STATUS_OPTIONS: { label: string; value: TransactionStatus | "" }[] = [
   { label: "Rejected", value: "REJECTED" },
 ];
 
+// Each half is null when the signed-in account may not view that side.
 interface Summary {
-  deposits: { pending: number; approved: number; rejected: number };
-  withdrawals: { pending: number; approved: number; completed: number; rejected: number };
+  deposits: { pending: number; approved: number; rejected: number } | null;
+  withdrawals: { pending: number; approved: number; completed: number; rejected: number } | null;
+}
+
+interface FinanceManagerProps {
+  providers: { code: string; name: string }[];
+  /** Show one side only (Deposit Management / Withdrawal Management pages). */
+  only?: Tab;
+  /** The account's effective permissions. Buttons are hidden without them; the API enforces them. */
+  permissions: string[];
 }
 
 async function parseJson<T>(res: Response) {
@@ -35,8 +44,8 @@ async function parseJson<T>(res: Response) {
   return { ok: res.ok, data: body.data, message: body.message };
 }
 
-export function FinanceManager({ providers }: { providers: { code: string; name: string }[] }) {
-  const [tab, setTab] = useState<Tab>("deposits");
+export function FinanceManager({ providers, only, permissions }: FinanceManagerProps) {
+  const [tab, setTab] = useState<Tab>(only ?? "deposits");
   const [status, setStatus] = useState<TransactionStatus | "">("PENDING");
   const [providerCode, setProviderCode] = useState("");
   const [search, setSearch] = useState("");
@@ -115,33 +124,25 @@ export function FinanceManager({ providers }: { providers: { code: string; name:
     <div className="space-y-4">
       {summary ? (
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          <SummaryTile
-            label="Pending Deposits"
-            value={summary.deposits.pending}
-            tone="pending"
-            icon="ArrowDownCircle"
-          />
-          <SummaryTile
-            label="Approved Deposits"
-            value={summary.deposits.approved}
-            tone="ok"
-            icon="CheckCircle2"
-          />
-          <SummaryTile
-            label="Pending Withdrawals"
-            value={summary.withdrawals.pending}
-            tone="pending"
-            icon="ArrowUpCircle"
-          />
-          <SummaryTile
-            label="Completed Withdrawals"
-            value={summary.withdrawals.completed}
-            tone="ok"
-            icon="CheckCircle2"
-          />
+          {summary.deposits && only !== "withdrawals" ? (
+            <>
+              <SummaryTile label="Pending Deposits" value={summary.deposits.pending} tone="pending" icon="ArrowDownCircle" />
+              <SummaryTile label="Approved Deposits" value={summary.deposits.approved} tone="ok" icon="CheckCircle2" />
+            </>
+          ) : null}
+          {summary.withdrawals && only !== "deposits" ? (
+            <>
+              <SummaryTile label="Pending Withdrawals" value={summary.withdrawals.pending} tone="pending" icon="ArrowUpCircle" />
+              {only === "withdrawals" ? (
+                <SummaryTile label="Awaiting Payout" value={summary.withdrawals.approved} tone="pending" icon="ArrowUpCircle" />
+              ) : null}
+              <SummaryTile label="Completed Withdrawals" value={summary.withdrawals.completed} tone="ok" icon="CheckCircle2" />
+            </>
+          ) : null}
         </div>
       ) : null}
 
+      {only ? null : (
       <div className="flex gap-2 border-b border-tcl-border-muted">
         {([
           ["deposits", "Deposits"],
@@ -162,6 +163,7 @@ export function FinanceManager({ providers }: { providers: { code: string; name:
           </button>
         ))}
       </div>
+      )}
 
       <div className="grid gap-2 md:grid-cols-[1fr_200px_200px_auto]">
         <div className="relative">
@@ -279,6 +281,7 @@ export function FinanceManager({ providers }: { providers: { code: string; name:
                       </td>
                       <td className="py-3 pr-3 font-mono text-[11px] text-tcl-white">
                         {d.transactionReference}
+                        {d.senderPhone ? <span className="block text-[10px] text-tcl-muted">from {d.senderPhone}</span> : null}
                       </td>
                       <td className="py-3 pr-3 text-[11px] text-tcl-muted">
                         {new Date(d.createdAt).toLocaleString()}
@@ -312,6 +315,11 @@ export function FinanceManager({ providers }: { providers: { code: string; name:
                   >
                     <td className="py-3 pl-4 pr-3 text-tcl-white">
                       {w.user ? `@${w.user.username}` : "—"}
+                      {w.requesterIsAgent ? (
+                        <span className="ml-1.5 rounded-pill bg-tcl-red/20 px-1.5 py-0.5 align-middle text-[9px] font-bold uppercase text-tcl-red-bright">
+                          Agent
+                        </span>
+                      ) : null}
                       <span className="block text-[10px] text-tcl-muted">
                         #{w.id.slice(0, 8).toUpperCase()}
                       </span>
@@ -328,6 +336,11 @@ export function FinanceManager({ providers }: { providers: { code: string; name:
                     </td>
                     <td className="py-3 pr-3">
                       <StatusBadge status={w.status} />
+                      {w.assignedAgent ? (
+                        <span className="mt-1 block text-[10px] text-tcl-muted">
+                          Agent: @{w.assignedAgent.username}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="py-3 pr-4">
                       <button
@@ -375,6 +388,7 @@ export function FinanceManager({ providers }: { providers: { code: string; name:
       {selected ? (
         <DecisionDialog
           selection={selected}
+          permissions={permissions}
           onClose={() => setSelected(null)}
           onCompleted={async () => {
             setSelected(null);
@@ -419,9 +433,11 @@ function SummaryTile({
 
 function DecisionDialog({
   selection,
+  permissions,
   onClose,
   onCompleted,
 }: {
+  permissions: string[];
   selection:
     | { kind: "deposit"; row: AdminDepositRow }
     | { kind: "withdrawal"; row: AdminWithdrawalRow };
@@ -432,8 +448,50 @@ function DecisionDialog({
   const [payoutReference, setPayoutReference] = useState(
     selection.kind === "withdrawal" ? selection.row.payoutReference ?? "" : "",
   );
-  const [busy, setBusy] = useState<"approve" | "reject" | "complete" | null>(null);
+  const [busy, setBusy] = useState<"approve" | "reject" | "complete" | "assign" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [agents, setAgents] = useState<{ id: string; username: string }[]>([]);
+  const [agentId, setAgentId] = useState(
+    selection.kind === "withdrawal" ? selection.row.assignedAgent?.id ?? "" : "",
+  );
+
+  const canReview = permissions.includes(
+    selection.kind === "deposit" ? "deposits.review" : "withdrawals.review",
+  );
+  const canComplete = permissions.includes("withdrawals.complete");
+  const canAssign = permissions.includes("withdrawals.assign");
+  const showAssign =
+    canAssign && selection.kind === "withdrawal" && selection.row.status === "APPROVED";
+
+  useEffect(() => {
+    if (!showAssign) return;
+    let alive = true;
+    fetch("/api/admin/finance/agents", { cache: "no-store" })
+      .then((res) => parseJson<{ id: string; username: string }[]>(res))
+      .then((parsed) => {
+        if (alive && parsed.ok && parsed.data) setAgents(parsed.data);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [showAssign]);
+
+  async function assign(next: string | null) {
+    setBusy("assign");
+    setError(null);
+    const res = await fetch(`/api/admin/finance/withdrawals/${selection.row.id}/assign`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ agentId: next }),
+    });
+    setBusy(null);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { message?: string };
+      setError(body.message ?? "Could not assign");
+      return;
+    }
+    onCompleted();
+  }
 
   const isTerminal =
     selection.row.status === "REJECTED" || selection.row.status === "COMPLETED";
@@ -496,6 +554,9 @@ function DecisionDialog({
                   {selection.row.transactionReference}
                 </span>
               </Field>
+              <Field label="Sent from">
+                <span className="font-mono text-tcl-white">{selection.row.senderPhone ?? "Not given"}</span>
+              </Field>
               <Field label="Agent Number">
                 <span className="font-mono text-tcl-white">
                   {selection.row.agentNumber}
@@ -521,13 +582,63 @@ function DecisionDialog({
           <Field label="Submitted">
             {new Date(selection.row.createdAt).toLocaleString()}
           </Field>
+          {selection.row.processedBy ? (
+            <Field label={selection.row.status === "REJECTED" ? "Rejected by" : "Approved by"}>
+              @{selection.row.processedBy.username}
+            </Field>
+          ) : null}
+          {selection.kind === "withdrawal" && selection.row.assignedAgent ? (
+            <Field label="Assigned agent">@{selection.row.assignedAgent.username}</Field>
+          ) : null}
+          {selection.kind === "withdrawal" && selection.row.completedBy ? (
+            <Field label="Paid out by">@{selection.row.completedBy.username}</Field>
+          ) : null}
         </div>
+
+        {showAssign ? (
+          <div className="space-y-1.5 rounded-md border border-tcl-border-muted bg-tcl-surface-2/50 p-3">
+            <label htmlFor="assign-agent" className="text-caption font-semibold text-tcl-white">
+              Assign payout to an agent
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <select
+                id="assign-agent"
+                value={agentId}
+                onChange={(e) => setAgentId(e.target.value)}
+                className="h-10 min-w-0 flex-1 rounded-md border border-tcl-border-muted bg-tcl-surface-2 px-3 text-sm text-tcl-white focus:border-tcl-gold focus:outline-none"
+              >
+                <option value="">Select an agent…</option>
+                {agents.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    @{a.username}
+                  </option>
+                ))}
+              </select>
+              <SecondaryButton
+                size="md"
+                variant="outline"
+                disabled={busy !== null || !agentId || agentId === selection.row.assignedAgent?.id}
+                onClick={() => assign(agentId)}
+              >
+                {busy === "assign" ? "Saving…" : "Assign"}
+              </SecondaryButton>
+              {selection.row.assignedAgent ? (
+                <SecondaryButton size="md" variant="outline" disabled={busy !== null} onClick={() => assign(null)}>
+                  Unassign
+                </SecondaryButton>
+              ) : null}
+            </div>
+            <p className="text-[11px] text-tcl-muted">
+              The agent sends the money to the receiving phone and marks it completed with the payout reference.
+            </p>
+          </div>
+        ) : null}
 
         {selection.row.status === "PENDING" ? (
           <div className="rounded-md border border-tcl-gold/40 bg-tcl-gold/10 px-3 py-2 text-caption text-tcl-gold">
             {selection.kind === "deposit"
               ? "Verify the payment arrived at the agent number for this Transaction ID before approving."
-              : "Approve only after you have reviewed KYC. Mark Completed only once the payout has actually been sent."}
+              : "The receiving phone is the user's verified registered number. Approve after review; mark Completed only once the payout has actually been sent."}
           </div>
         ) : null}
 
@@ -546,7 +657,7 @@ function DecisionDialog({
           />
         </div>
 
-        {isApprovedWithdrawal ? (
+        {isApprovedWithdrawal && canComplete ? (
           <div className="space-y-1.5">
             <label className="text-caption font-semibold text-tcl-white">
               Payout Reference (required for Complete)
@@ -578,7 +689,7 @@ function DecisionDialog({
           <SecondaryButton onClick={onClose} variant="outline" size="md" disabled={busy !== null}>
             Close
           </SecondaryButton>
-          {selection.row.status === "PENDING" ? (
+          {selection.row.status === "PENDING" && canReview ? (
             <>
               <button
                 type="button"
@@ -599,8 +710,7 @@ function DecisionDialog({
               </PrimaryButton>
             </>
           ) : null}
-          {isApprovedWithdrawal ? (
-            <>
+          {isApprovedWithdrawal && canReview ? (
               <button
                 type="button"
                 onClick={() => run("reject")}
@@ -610,6 +720,8 @@ function DecisionDialog({
                 <ICONS.XCircle aria-hidden="true" className="size-4" />
                 {busy === "reject" ? "Rejecting…" : "Reject"}
               </button>
+          ) : null}
+          {isApprovedWithdrawal && canComplete ? (
               <PrimaryButton
                 onClick={() => run("complete")}
                 disabled={busy !== null || !payoutReference.trim()}
@@ -618,7 +730,6 @@ function DecisionDialog({
               >
                 {busy === "complete" ? "Completing…" : "Mark Completed"}
               </PrimaryButton>
-            </>
           ) : null}
         </div>
       </div>

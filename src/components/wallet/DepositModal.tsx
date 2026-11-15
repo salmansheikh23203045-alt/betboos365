@@ -13,6 +13,8 @@ import {
   fetchWalletProviders,
 } from "@/lib/wallet-client";
 import type { PaymentProvider, PaymentType, WalletConfig } from "@/types/wallet";
+import { notifyWalletChanged } from "@/components/wallet/WalletBalanceProvider";
+import { SenderPhoneField, senderPhoneValid } from "@/components/wallet/SenderPhoneField";
 
 type Step = "method" | "type" | "amount" | "confirm" | "submitted";
 
@@ -34,6 +36,7 @@ export function DepositModal({
   const [paymentType, setPaymentType] = useState<PaymentType | null>(null);
   const [amount, setAmount] = useState("");
   const [txRef, setTxRef] = useState("");
+  const [senderPhone, setSenderPhone] = useState("");
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +59,7 @@ export function DepositModal({
       setPaymentType(null);
       setAmount("");
       setTxRef("");
+      setSenderPhone("");
       setError(null);
       setCopied(false);
     }
@@ -77,6 +81,7 @@ export function DepositModal({
       paymentType,
       amount: amountNumber,
       transactionReference: txRef.trim(),
+      ...(senderPhone.trim() ? { senderPhone: senderPhone.trim() } : {}),
     });
     setSubmitting(false);
     if (!res.ok) {
@@ -85,6 +90,7 @@ export function DepositModal({
     }
     setStep("submitted");
     onSubmitted?.();
+    notifyWalletChanged();
   }
 
   async function copyAgentNumber() {
@@ -146,6 +152,8 @@ export function DepositModal({
           agentNumber={config.agentNumber}
           txRef={txRef}
           onTxRefChange={setTxRef}
+          senderPhone={senderPhone}
+          onSenderPhoneChange={setSenderPhone}
           onCopy={copyAgentNumber}
           copied={copied}
           onBack={() => setStep("amount")}
@@ -266,8 +274,8 @@ function TypeStep({
           </button>
         ))}
       </div>
-      <div className="flex justify-between gap-3 pt-1">
-        <SecondaryButton onClick={onBack} size="md" icon="ChevronLeft">
+      <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-1">
+        <SecondaryButton onClick={onBack} size="md" icon="ChevronLeft" fullWidth className="sm:w-auto">
           Back
         </SecondaryButton>
       </div>
@@ -318,8 +326,8 @@ function AmountStep({
           Maximum deposit: <span className="text-tcl-white">{config.currency} {config.deposit.max.toLocaleString()}</span>.
         </p>
       </div>
-      <div className="flex justify-between gap-3 pt-1">
-        <SecondaryButton onClick={onBack} size="md" icon="ChevronLeft">
+      <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-1">
+        <SecondaryButton onClick={onBack} size="md" icon="ChevronLeft" fullWidth className="sm:w-auto">
           Back
         </SecondaryButton>
         <PrimaryButton
@@ -327,6 +335,8 @@ function AmountStep({
           disabled={!valid}
           size="md"
           icon="ArrowRight"
+          fullWidth
+          className="sm:w-auto"
         >
           Continue
         </PrimaryButton>
@@ -343,6 +353,8 @@ function ConfirmStep({
   agentNumber,
   txRef,
   onTxRefChange,
+  senderPhone,
+  onSenderPhoneChange,
   onCopy,
   copied,
   onBack,
@@ -357,6 +369,8 @@ function ConfirmStep({
   agentNumber: string;
   txRef: string;
   onTxRefChange: (v: string) => void;
+  senderPhone: string;
+  onSenderPhoneChange: (v: string) => void;
   onCopy: () => void;
   copied: boolean;
   onBack: () => void;
@@ -432,6 +446,8 @@ function ConfirmStep({
         </p>
       </div>
 
+      <SenderPhoneField value={senderPhone} onChange={onSenderPhoneChange} />
+
       {error ? (
         <div className="flex items-start gap-2 rounded-md border border-tcl-red/40 bg-tcl-red/10 px-3 py-2 text-caption text-tcl-red-bright">
           <ICONS.AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
@@ -440,14 +456,15 @@ function ConfirmStep({
       ) : null}
 
       <div className="flex justify-between gap-3 pt-1">
-        <SecondaryButton onClick={onBack} size="md" icon="ChevronLeft" disabled={submitting}>
+        <SecondaryButton onClick={onBack} size="md" icon="ChevronLeft" disabled={submitting} className="w-full sm:w-auto">
           Back
         </SecondaryButton>
         <PrimaryButton
           onClick={onSubmit}
-          disabled={!refValid || submitting}
+          disabled={!refValid || !senderPhoneValid(senderPhone) || submitting}
           size="md"
           icon={submitting ? undefined : "Send"}
+          className="w-full sm:w-auto"
         >
           {submitting ? "Submitting…" : "Submit Deposit Request"}
         </PrimaryButton>

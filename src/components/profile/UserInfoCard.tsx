@@ -175,10 +175,9 @@ export function UserInfoCard({
             <div className="flex-1 space-y-0.5">
               <p className="leading-tight">
                 {BN.userCenter.lastLoginTime}:{" "}
-                <span className="text-tcl-white">
-                  {lastLoginAt
-                    ? new Date(lastLoginAt).toLocaleString()
-                    : new Date().toLocaleString()}
+                {/* Locale/timezone formatting differs between server and browser. */}
+                <span className="text-tcl-white" suppressHydrationWarning>
+                  {lastLoginAt ? new Date(lastLoginAt).toLocaleString() : "—"}
                 </span>
               </p>
               <p className="leading-tight text-tcl-muted">

@@ -69,7 +69,7 @@ export function Footer() {
           <Logo size="sm" />
         </div>
         <p className="mx-auto mt-3 max-w-[300px] text-[12px] leading-relaxed text-tcl-muted">
-          TCL11 is a trusted online entertainment platform with a wide range of casino, slots, live casino,
+          BetBoos365 is a trusted online entertainment platform with a wide range of casino, slots, live casino,
           sports and more. Play safely and enjoy exciting rewards.
         </p>
         <div className="mt-4 flex justify-center gap-2.5">
@@ -91,7 +91,7 @@ export function Footer() {
         <div className="space-y-4 sm:col-span-2 lg:col-span-1">
           <Logo size="md" />
           <p className="max-w-xs text-caption text-tcl-muted">
-            TCL11 is a trusted online entertainment platform with a wide range of casino, slots, live casino,
+            BetBoos365 is a trusted online entertainment platform with a wide range of casino, slots, live casino,
             sports and more. Play safely and enjoy exciting rewards.
           </p>
         </div>
@@ -137,7 +137,7 @@ export function Footer() {
 
       <div className="border-t border-tcl-red/30">
         <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-3 px-4 py-4 text-caption text-tcl-muted sm:flex-row lg:px-6 max-sm:gap-2 max-sm:py-3 max-sm:text-[11px]">
-          <p>© 2026 TCL11. All Rights Reserved.</p>
+          <p>© 2026 BetBoos365. All Rights Reserved.</p>
           <div className="flex items-center gap-3">
             <LegalBadge>18+ Play Responsibly</LegalBadge>
             <LegalBadge>Gambling Aware</LegalBadge>

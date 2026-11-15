@@ -20,6 +20,19 @@ export async function POST(req: Request) {
     delete payload.email;
   }
 
+  // Extract frontend-only optional fields (currency, referralCode) so NestJS DTO (forbidNonWhitelisted) doesn't reject them
+  const currency = payload.currency;
+  const referralCode = payload.referralCode;
+  delete payload.currency;
+  delete payload.referralCode;
+
+  if (!payload.firstName && typeof payload.username === "string") {
+    payload.firstName = payload.username.slice(0, 30);
+  }
+  if (!payload.lastName) {
+    payload.lastName = "Player";
+  }
+
   const res = await backendFetch("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),

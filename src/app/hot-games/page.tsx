@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { POPULAR_GAMES } from "@/data/mock";
 import { BN } from "@/i18n/bn";
 
-export const metadata: Metadata = { title: `${BN.nav.hotGames} | TCL11` };
+export const metadata: Metadata = { title: `${BN.nav.hotGames} | BetBoos365` };
 
 export default function HotGamesPage() {
   return (

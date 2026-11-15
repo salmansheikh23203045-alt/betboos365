@@ -9,6 +9,8 @@ import { MOBILE_TABS, NAV_ITEMS } from "@/data/mock";
 import { PromoMarquee } from "@/components/layout/PromoMarquee";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrchestrator";
+import { WalletBalanceProvider } from "@/components/wallet/WalletBalanceProvider";
+import { TelegramBonusPopup } from "@/components/promo/TelegramBonusPopup";
 import { getSession } from "@/lib/session";
 
 /* Display face: heavy condensed sans. Closest free match to the reference hero/section titles.
@@ -28,8 +30,8 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TCL11",
-  description: "TCL11 — online casino, slots, live casino, sports and promotions.",
+  title: "BetBoos365",
+  description: "BetBoos365 — online casino, slots, live casino, sports and promotions.",
 };
 
 export const viewport: Viewport = {
@@ -55,6 +57,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           nothing admin is mounted. */}
       <body className="flex min-h-dvh flex-col max-lg:pb-16">
         <AuthProvider initialUser={user}>
+          <WalletBalanceProvider>
           <div data-chrome="public" className="contents">
             <DesktopHeader navItems={NAV_ITEMS} />
             <PromoMarquee />
@@ -66,6 +69,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <MobileBottomNavigation items={MOBILE_TABS} />
           </div>
           <OnboardingOrchestrator />
+          <TelegramBonusPopup />
+          </WalletBalanceProvider>
         </AuthProvider>
       </body>
     </html>

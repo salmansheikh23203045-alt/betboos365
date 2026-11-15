@@ -3,7 +3,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { ICONS } from "@/lib/icons";
 
-export const metadata: Metadata = { title: "Live Chat | TCL11" };
+export const metadata: Metadata = { title: "Live Chat | BetBoos365" };
 
 export default function ChatPage() {
   return (

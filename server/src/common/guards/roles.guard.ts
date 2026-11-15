@@ -16,6 +16,9 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user?.roles?.includes(role));
+    const roles: Role[] = Array.isArray(user?.roles) ? user.roles : [];
+    // Super Admin sits above every other role, so it satisfies any requirement.
+    if (roles.includes(Role.SUPER_ADMIN)) return true;
+    return requiredRoles.some((role) => roles.includes(role));
   }
 }

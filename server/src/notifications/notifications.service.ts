@@ -39,10 +39,33 @@ export class NotificationsService {
     return notification;
   }
 
+  /**
+   * Notify without ever failing the caller. Used after a financial decision
+   * has already committed: a notification problem must not turn a successful
+   * approval into an error response.
+   */
+  async notifySafe(userId: string, type: PrismaNotificationType, title: string, message: string) {
+    try {
+      await this.create(userId, type, title, message);
+    } catch (err) {
+      this.logger.error(`Notification to ${userId} failed: ${(err as Error).message}`);
+    }
+  }
+
+  /** Live-only event for connected admins; nothing is persisted. */
+  notifyStaff(event: string, payload: Record<string, unknown>) {
+    try {
+      this.gateway.sendToStaff(event, payload);
+    } catch (err) {
+      this.logger.error(`Staff event ${event} failed: ${(err as Error).message}`);
+    }
+  }
+
   async findByUser(userId: string) {
     return this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      take: 200,
     });
   }
 

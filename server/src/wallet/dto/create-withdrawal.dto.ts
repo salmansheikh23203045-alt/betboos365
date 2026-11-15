@@ -1,9 +1,10 @@
 import {
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
-  Matches,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -13,12 +14,13 @@ export class CreateWithdrawalDto {
   @IsNotEmpty()
   providerCode!: string;
 
-  // Bangladeshi mobile number: optional +880 or leading 0, then 1[3-9] + 8 digits.
+  // Not used to choose the payout number: withdrawals always go to the
+  // account's verified registered phone. Accepted only so that a client which
+  // sends a number gets an explicit error when it is not the registered one.
+  @IsOptional()
   @IsString()
-  @Matches(/^(?:\+?8801|01)[3-9]\d{8}$/, {
-    message: 'Enter a valid Bangladeshi mobile number',
-  })
-  receivingPhone!: string;
+  @MaxLength(20)
+  receivingPhone?: string;
 
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })

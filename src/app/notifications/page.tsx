@@ -10,7 +10,7 @@ import { ICONS } from "@/lib/icons";
 import { cn } from "@/lib/cn";
 import { BN } from "@/i18n/bn";
 
-export const metadata: Metadata = { title: `${BN.notifications.title} | TCL11` };
+export const metadata: Metadata = { title: `${BN.notifications.title} | BetBoos365` };
 export const dynamic = "force-dynamic";
 
 interface NotificationRow {

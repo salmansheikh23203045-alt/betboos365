@@ -10,7 +10,8 @@ import {
   clearAuthCookies,
 } from "./auth-cookies";
 
-export type Role = "user" | "vip" | "moderator" | "admin" | "super_admin";
+import type { Role } from "./roles";
+export type { Role };
 
 export interface SessionUser {
   id: string;
@@ -19,6 +20,10 @@ export interface SessionUser {
   firstName: string;
   lastName: string;
   roles: Role[];
+  /** Effective permissions, computed by the backend. Used only to decide what to show. */
+  permissions?: string[];
+  /** Temporary password still in use; the account must change it first. */
+  mustChangePassword?: boolean;
 }
 
 type TokensResponse = {
@@ -71,7 +76,8 @@ export async function getSession(): Promise<SessionUser | null> {
     return null;
   }
 
-  return refreshed.user;
+  // /users/me carries the effective permissions; the refresh response does not.
+  return (await fetchMe(refreshed.accessToken)) ?? refreshed.user;
 }
 
 /**

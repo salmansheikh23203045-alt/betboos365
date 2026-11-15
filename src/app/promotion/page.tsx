@@ -4,7 +4,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { Pill } from "@/components/ui/Pill";
 
-export const metadata: Metadata = { title: "Promotions & Bonuses | TCL11" };
+export const metadata: Metadata = { title: "Promotions & Bonuses | BetBoos365" };
 export const dynamic = "force-dynamic";
 
 interface BonusOffer {

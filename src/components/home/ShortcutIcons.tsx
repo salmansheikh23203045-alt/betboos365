@@ -1,4 +1,4 @@
-/* Custom SVG icons for the hero shortcut buttons. Hand-drawn to match the TCL11
+/* Custom SVG icons for the hero shortcut buttons. Hand-drawn to match the BetBoos365
  * reference (golden-white glowing line icons). Not Lucide. Each icon inherits its
  * colour from `currentColor` (set to gold by the button) and gets its glow from a
  * CSS drop-shadow filter applied by ShortcutGrid. */

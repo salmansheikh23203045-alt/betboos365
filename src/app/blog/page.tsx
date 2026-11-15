@@ -6,12 +6,12 @@ import { Pill } from "@/components/ui/Pill";
 import { ICONS } from "@/lib/icons";
 import { BLOG_POSTS } from "@/data/pages";
 
-export const metadata: Metadata = { title: "Blog | TCL11" };
+export const metadata: Metadata = { title: "Blog | BetBoos365" };
 
 export default function BlogPage() {
   return (
     <div className="animate-fade-in-up mx-auto max-w-[1280px] space-y-6 px-4 py-6 lg:px-6">
-      <PageBanner title="Blog" subtitle="Tips, guides, and the latest news from TCL11" icon="BookOpen" />
+      <PageBanner title="Blog" subtitle="Tips, guides, and the latest news from BetBoos365" icon="BookOpen" />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {BLOG_POSTS.map((post, i) => (

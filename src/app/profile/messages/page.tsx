@@ -5,7 +5,7 @@ import { backendFetch } from "@/lib/api";
 import { BN } from "@/i18n/bn";
 import { MessagesClient } from "./MessagesClient";
 
-export const metadata: Metadata = { title: `${BN.userCenter.internalMessages} | TCL11` };
+export const metadata: Metadata = { title: `${BN.userCenter.internalMessages} | BetBoos365` };
 export const dynamic = "force-dynamic";
 
 interface NotificationRow {

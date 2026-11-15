@@ -8,6 +8,21 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { ICONS } from "@/lib/icons";
 import { cn } from "@/lib/cn";
+import { canUseAdminDashboard, homeFor, isAgent, isRestrictedStaff, roleLabel } from "@/lib/roles";
+import { useWalletBalance } from "@/components/wallet/WalletBalanceProvider";
+import { formatBdt } from "@/lib/money";
+
+/** Wallet balance from the backend; a placeholder until the first read lands. */
+function BalanceTag({ balance, className }: { balance: number | null; className?: string }) {
+  return (
+    <span
+      className={cn("tabular-nums font-bold text-tcl-gold", balance === null && "text-tcl-muted", className)}
+      aria-label={balance === null ? "Wallet balance loading" : `Wallet balance ${formatBdt(balance)}`}
+    >
+      {balance === null ? "৳ —" : formatBdt(balance)}
+    </span>
+  );
+}
 
 interface HeaderAuthProps {
   variant: "desktop" | "mobile";
@@ -19,6 +34,7 @@ interface HeaderAuthProps {
  */
 export function HeaderAuth({ variant }: HeaderAuthProps) {
   const { user, loading, logout } = useAuth();
+  const { balance } = useWalletBalance();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -54,9 +70,18 @@ export function HeaderAuth({ variant }: HeaderAuthProps) {
     );
   }
 
-  const isAdmin = user.roles.includes("admin") || user.roles.includes("super_admin");
+  const isAdmin = canUseAdminDashboard(user.roles) || isAgent(user.roles);
+  // Admin, Sub Admin and Agent accounts have no profile: their chip and menu
+  // lead to their dashboard instead.
+  const staff = isRestrictedStaff(user.roles);
+  const accountHref = staff ? homeFor(user.roles) : "/profile";
+  const dashboardHref = isAgent(user.roles) && !canUseAdminDashboard(user.roles) ? "/agent" : "/admin";
+  const dashboardLabel = dashboardHref === "/agent" ? "Agent Dashboard" : "Admin Dashboard";
+  const badge = roleLabel(user.roles);
   const isVip = user.roles.includes("vip");
-  const chipLabel = user.firstName || user.username;
+  // Players see "username ৳balance"; staff accounts have no wallet.
+  const showBalance = !staff;
+  const chipLabel = showBalance ? user.username : user.firstName || user.username;
 
   if (variant === "desktop") {
     return (
@@ -71,9 +96,15 @@ export function HeaderAuth({ variant }: HeaderAuthProps) {
           <span className="inline-flex size-6 items-center justify-center rounded-full bg-tcl-gold/20 text-tcl-gold">
             <ICONS.User aria-hidden="true" className="size-3.5" />
           </span>
-          <span>{chipLabel}</span>
+          <span className="max-w-[10rem] truncate">{chipLabel}</span>
+          {showBalance ? (
+            <>
+              <span aria-hidden="true" className="h-4 w-px bg-tcl-border-muted" />
+              <BalanceTag balance={balance} />
+            </>
+          ) : null}
           {isAdmin ? (
-            <span className="rounded-pill bg-tcl-red/30 px-1.5 py-0.5 text-[10px] font-bold uppercase text-tcl-red-bright">Admin</span>
+            <span className="rounded-pill bg-tcl-red/30 px-1.5 py-0.5 text-[10px] font-bold uppercase text-tcl-red-bright">{badge}</span>
           ) : isVip ? (
             <span className="rounded-pill bg-tcl-gold/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-tcl-gold">VIP</span>
           ) : null}
@@ -84,22 +115,24 @@ export function HeaderAuth({ variant }: HeaderAuthProps) {
             role="menu"
             className="absolute right-0 top-11 w-48 overflow-hidden rounded-md border border-tcl-border-muted bg-tcl-surface-1 shadow-lg"
           >
-            <Link
-              href="/profile"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm text-tcl-white hover:bg-tcl-surface-2"
-              role="menuitem"
-            >
-              My Profile
-            </Link>
-            {isAdmin ? (
+            {staff ? null : (
               <Link
-                href="/admin"
+                href="/profile"
                 onClick={() => setOpen(false)}
                 className="block px-3 py-2 text-sm text-tcl-white hover:bg-tcl-surface-2"
                 role="menuitem"
               >
-                Admin Dashboard
+                My Profile
+              </Link>
+            )}
+            {isAdmin ? (
+              <Link
+                href={dashboardHref}
+                onClick={() => setOpen(false)}
+                className="block px-3 py-2 text-sm text-tcl-white hover:bg-tcl-surface-2"
+                role="menuitem"
+              >
+                {dashboardLabel}
               </Link>
             ) : null}
             <button
@@ -121,15 +154,16 @@ export function HeaderAuth({ variant }: HeaderAuthProps) {
   return (
     <div className="flex items-center gap-2 px-4 pb-3">
       <Link
-        href="/profile"
+        href={accountHref}
         className="flex h-11 flex-1 items-center gap-2 rounded-md border border-tcl-gold/40 bg-tcl-surface-2 px-3 text-sm font-semibold text-tcl-white"
       >
         <span className="inline-flex size-6 items-center justify-center rounded-full bg-tcl-gold/20 text-tcl-gold">
           <ICONS.User aria-hidden="true" className="size-3.5" />
         </span>
-        <span className="truncate">{chipLabel}</span>
+        <span className="min-w-0 truncate">{chipLabel}</span>
+        {showBalance ? <BalanceTag balance={balance} className="ml-auto shrink-0" /> : null}
         {isAdmin ? (
-          <span className="ml-auto rounded-pill bg-tcl-red/30 px-1.5 py-0.5 text-[10px] font-bold uppercase text-tcl-red-bright">Admin</span>
+          <span className="ml-auto rounded-pill bg-tcl-red/30 px-1.5 py-0.5 text-[10px] font-bold uppercase text-tcl-red-bright">{badge}</span>
         ) : isVip ? (
           <span className="ml-auto rounded-pill bg-tcl-gold/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-tcl-gold">VIP</span>
         ) : null}

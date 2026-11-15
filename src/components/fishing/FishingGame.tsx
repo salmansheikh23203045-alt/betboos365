@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 import { BN } from "@/i18n/bn";
 
 /**
- * TCL11 Fishing Game — virtual-points demo.
+ * BetBoos365 Fishing Game — virtual-points demo.
  *
  * Canvas-based 60fps game: a gold cannon fires red bullets at swimming fish.
  * Each fish species has a point value and hits-to-kill. No wagering, no real

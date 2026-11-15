@@ -7,7 +7,7 @@ import { ICONS } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
 import { ReferralCard } from "@/components/referral/ReferralCard";
 
-export const metadata: Metadata = { title: `${BN.referral.title} | TCL11` };
+export const metadata: Metadata = { title: `${BN.referral.title} | BetBoos365` };
 export const dynamic = "force-dynamic";
 
 export default async function ReferralPage() {

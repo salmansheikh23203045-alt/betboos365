@@ -1,4 +1,4 @@
-# CLAUDE_PROJECT_STATE — TCL11 Website
+# CLAUDE_PROJECT_STATE — BetBoos365 Website
 
 **Last updated:** 2026-11-11 (Step 14: Neon wired, migrations + seed applied, Vercel env set; deploy to production imminent)
 
@@ -6,13 +6,13 @@
 
 ### Step 14 — Neon configured, migrations + seed applied, Vercel env set (2026-11-11)
 - **Neon CLI 9.3.2** installed; existing OAuth credentials at `C:\Users\This Pc\.config\neon\credentials.json` reused — no browser flow required.
-- **Neon project located (NOT created — user-created via dashboard):** `tcl11-prod`, id `royal-sea-19087447`, org `org-twilight-recipe-53933656` (Salman), region `aws-ap-southeast-1` (Singapore), Postgres 18, default branch `production` (`br-sweet-shape-azde9pgr`), database `neondb` (owner `neondb_owner`).
+- **Neon project located (NOT created — user-created via dashboard):** `betboos365-prod`, id `royal-sea-19087447`, org `org-twilight-recipe-53933656` (Salman), region `aws-ap-southeast-1` (Singapore), Postgres 18, default branch `production` (`br-sweet-shape-azde9pgr`), database `neondb` (owner `neondb_owner`).
 - **Pooled + direct URLs fetched via `neon connection-string` and written to `server/.env.production`** — gitignored (verified by `git check-ignore`). Pooled URL appended with `&pgbouncer=true&connect_timeout=15` for Prisma + PgBouncer compatibility.
 - **Prisma migrate status (before):** 3 pending, DB empty, no `_prisma_migrations` table. **`prisma migrate deploy` applied all 3 cleanly:** `20261110050243_init`, `20261110090000_add_username`, `20261111030000_wallet_and_payments`.
 - **Production seed (`seed.prod.ts`) audited first — upsert-only, content-only, no user accounts, no admin password — then run:** 5 providers, 14 games, 5 leagues, 12 teams, 4 upcoming matches, 6 promotions seeded.
 - **18 Vercel production env vars pushed** via `vercel env add <NAME> production` with stdin, never printed in chat or logs: `NODE_ENV`, `API_PREFIX`, `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `JWT_EXPIRATION`, `JWT_REFRESH_EXPIRATION`, `CORS_ORIGINS`, `THROTTLE_TTL`, `THROTTLE_LIMIT`, `SPORTS_API_PROVIDER`, `LOG_LEVEL`, `WALLET_CURRENCY`, `DEPOSIT_AGENT_NUMBER`, `DEPOSIT_MIN`, `DEPOSIT_MAX`, `WITHDRAWAL_MIN`, `WITHDRAWAL_MAX`. `JWT_SECRET` is 96 hex chars from `crypto.randomBytes(48)`, unique to production.
-- **Git remote reconciled with existing GitHub repo** `https://github.com/salman8809/tcl11-website.git`. Remote had 3 preparatory commits (`680e1b2`, `1bf0372`, `6d429e9` — "Prepare TCL11 for Vercel deployment", "Fix Vercel deployment exclusions", "Fix Vercel deployment identity") that already carried the catch-all route, nest-handler bridge, next.config externalPackages fix, and notifications-gateway guards. Local rebase conflicted; I adopted remote as source of truth (backup `backup-088beec` branch preserves my parallel work) and only need to add back `allowScripts` block for npm install-script approval, which was the missing piece.
-- **Vercel project confirmed:** linked to `salman8809/tcl11-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`). `tcl11-website-gcbc` also exists on the account — **not touched, not used**, per the explicit directive.
+- **Git remote reconciled with existing GitHub repo** `https://github.com/salman8809/betboos365-website.git`. Remote had 3 preparatory commits (`680e1b2`, `1bf0372`, `6d429e9` — "Prepare BetBoos365 for Vercel deployment", "Fix Vercel deployment exclusions", "Fix Vercel deployment identity") that already carried the catch-all route, nest-handler bridge, next.config externalPackages fix, and notifications-gateway guards. Local rebase conflicted; I adopted remote as source of truth (backup `backup-088beec` branch preserves my parallel work) and only need to add back `allowScripts` block for npm install-script approval, which was the missing piece.
+- **Vercel project confirmed:** linked to `salman8809/betboos365-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`). `betboos365-website-gcbc` also exists on the account — **not touched, not used**, per the explicit directive.
 - **Next step:** push one more commit (allowScripts + this doc entry) → `vercel --prod` → smoke test → fill `PRODUCTION_DEPLOYMENT_REPORT.md`.
 
 ---
@@ -20,26 +20,26 @@
 ### Step 14 — Production deployment (2026-11-11, IN PROGRESS — pivoted to free stack, blocked on 2 browser signups)
 - **Architecture pivot (user-approved 2026-11-11 ~16:05):** Railway Hobby ($5/mo) was pre-approved then superseded by a user directive to use only free providers. Research (WebSearch, 2026-11-11) confirmed:
   - **Render** — free Web Service tier still exists (512 MB RAM, 0.1 CPU, sleeps after 15 min idle with ~60s cold start, 750 instance-hours/month per workspace, Docker supported). Signup via GitHub OAuth — no card required for the free plan. Chosen for backend.
-  - **Neon** — free Postgres tier (0.5 GB storage, project `tcl11-prod`, Postgres 17). Signup via Google OAuth, no card required. Chosen for DB.
+  - **Neon** — free Postgres tier (0.5 GB storage, project `betboos365-prod`, Postgres 17). Signup via Google OAuth, no card required. Chosen for DB.
   - **Vercel** — already linked (unchanged); free Hobby plan covers the Next.js frontend.
   - **Koyeb** — rejected: Feb 2026 change requires a $29 pre-authorization card hold.
   - **Railway** — rejected per user: Hobby $5/mo not free.
 - **Email in use for NEW signups:** `salman23203045@hotmail.com` (switched from `salmanrorvi72@gmail.com` mid-session). Any resources already created under another identity must be reused, not duplicated.
 - **Already-connected accounts (DO NOT re-create):**
-  - **Vercel** — logged in as `salman8809`, project `tcl11-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`, team `team_1Uz2EyzBGAlyXwVYmBzIiFNw`), CLI 65.12.1, production env currently empty. This is the target project — the deploy will add `BACKEND_API_URL` and `vercel --prod` here.
+  - **Vercel** — logged in as `salman8809`, project `betboos365-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`, team `team_1Uz2EyzBGAlyXwVYmBzIiFNw`), CLI 65.12.1, production env currently empty. This is the target project — the deploy will add `BACKEND_API_URL` and `vercel --prod` here.
   - **PostgreSQL 17 local** — running on `localhost:5432` for dev; irrelevant to production.
   - **NestJS backend local** — rebuildable from `server/dist/` and bootable with `node dist/main.js` for local testing.
 - **Autonomous prep completed this session:**
   - Railway CLI 5.71.0 installed globally (kept — may still be useful as a fallback).
   - JWT_SECRET generated (96 hex chars, `crypto.randomBytes(48)`) and stored in `server/.env.production` (gitignored by `server/.gitignore`'s `.env.*` pattern — verified with `git check-ignore -v`).
   - `server/.env.production` created with every non-secret var pre-filled; DATABASE_URL and DIRECT_URL left blank as the single local-disk place for the Neon strings.
-  - **`render.yaml` Blueprint committed** at repo root. Declares the `tcl11-backend` free Web Service in Singapore, points at `server/Dockerfile`, injects every non-secret env var, marks DATABASE_URL / DIRECT_URL / JWT_SECRET as `sync: false` so they only live in Render's UI, never in the repo. Health-check path `/api/v1/promotions`.
+  - **`render.yaml` Blueprint committed** at repo root. Declares the `betboos365-backend` free Web Service in Singapore, points at `server/Dockerfile`, injects every non-secret env var, marks DATABASE_URL / DIRECT_URL / JWT_SECRET as `sync: false` so they only live in Render's UI, never in the repo. Health-check path `/api/v1/promotions`.
   - Dockerfile unchanged (`prisma migrate deploy && node dist/main.js` on boot) — Render consumes it as-is.
   - All Step 13 work (User Center, onboarding, nav replacement, login UX) committed as `470b65c` — 73 Next.js routes building cleanly.
 - **Blocked on user action (3 browser OAuth signups, ~10 min total, zero cards):**
   1. **GitHub repo** — the code needs to live on GitHub for Render to pull from. User runs `gh auth login` on their machine ONCE (device-code flow, 30s), then I create the repo and push commit `470b65c`.
-  2. **Neon signup** — https://console.neon.tech/signup → **Sign in with Google** with `salman23203045@hotmail.com` (bypasses email verification). Create project `tcl11-prod`, Postgres 17, Singapore. Paste pooled URL into `server/.env.production` after `DATABASE_URL=` with `&pgbouncer=true&connect_timeout=15` appended, and direct URL after `DIRECT_URL=`.
-  3. **Render signup** — https://render.com/register → **Sign up with GitHub** (same account used in step 1). Click **New → Blueprint**, pick the `tcl11` repo — Render reads `render.yaml` and provisions the service. Paste `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` into the service's Environment tab (values are in `server/.env.production` locally).
+  2. **Neon signup** — https://console.neon.tech/signup → **Sign in with Google** with `salman23203045@hotmail.com` (bypasses email verification). Create project `betboos365-prod`, Postgres 17, Singapore. Paste pooled URL into `server/.env.production` after `DATABASE_URL=` with `&pgbouncer=true&connect_timeout=15` appended, and direct URL after `DIRECT_URL=`.
+  3. **Render signup** — https://render.com/register → **Sign up with GitHub** (same account used in step 1). Click **New → Blueprint**, pick the `betboos365` repo — Render reads `render.yaml` and provisions the service. Paste `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` into the service's Environment tab (values are in `server/.env.production` locally).
 - **Remaining fully-autonomous steps (triggered by user saying "all three done"):**
   - Verify blockers: `gh auth status`, test SSH push access, confirm Neon URLs in `.env.production`, confirm Render service responding.
   - Push commit `470b65c` to the new GitHub repo.
@@ -188,7 +188,7 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
 - [x] Verification: `tsc --noEmit` passes; `next build` passes; desktop (1440px) and mobile (390px) screenshots checked; horizontal overflow 0 on both; mobile bottom nav renders fixed at bottom.
 
 ### Step 02 — deviations and choices made (review these)
-- **Logo:** RESOLVED. The user supplied the logo (`2.png`, 2170×725). It had a checkerboard baked into the pixels (RGB, no alpha), so the background was removed with a script and saved as `public/brand/tcl11-logo.png` (1000×410, transparent). `Logo` now renders this image by default; the typographic wordmark stand-in was removed. Heights: sm h-11 (mobile header), md h-12 (desktop header, footer), lg h-16. The original source file is not stored in the project; a true transparent/vector master would still be better for large sizes.
+- **Logo:** RESOLVED. The user supplied the logo (`2.png`, 2170×725). It had a checkerboard baked into the pixels (RGB, no alpha), so the background was removed with a script and saved as `public/brand/betboos365-logo.png` (1000×410, transparent). `Logo` now renders this image by default; the typographic wordmark stand-in was removed. Heights: sm h-11 (mobile header), md h-12 (desktop header, footer), lg h-16. The original source file is not stored in the project; a true transparent/vector master would still be better for large sizes.
 - **Marquee strip** (gold promo line) was not in the Step 02 component list, so it is not built. Planned for Step 03.
 - **Popular Games category tabs** (All / Slots / Table …) are not built; they belong with the Step 03 section composition.
 - **Brand icons:** Lucide has no YouTube/Facebook/Telegram/Instagram/TikTok icons. Footer uses generic Lucide glyphs with accessible labels. Replace with official SVGs.
@@ -272,8 +272,8 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
 - Dev-server note: after editing Tailwind class strings the dev server can serve stale CSS. Restart `next dev` before judging a visual change.
 
 ### Deployment (2026-11-09)
-- Vercel CLI 65.12.1, logged in as `salman8809`. Project `salman8809/tcl11-website` created; Next.js auto-detected; `.vercel/` link folder and a `.gitignore` were added to the project root.
-- The first deploy went straight to **production** (Vercel assigns a project's first deployment to production), contrary to the user's preview-first instruction: https://tcl11-website.vercel.app (Vercel Authentication protection on). It predates the Step 04 pass 2 changes.
+- Vercel CLI 65.12.1, logged in as `salman8809`. Project `salman8809/betboos365-website` created; Next.js auto-detected; `.vercel/` link folder and a `.gitignore` were added to the project root.
+- The first deploy went straight to **production** (Vercel assigns a project's first deployment to production), contrary to the user's preview-first instruction: https://betboos365-website.vercel.app (Vercel Authentication protection on). It predates the Step 04 pass 2 changes.
 - Not yet confirmed: that `salman8809` is the account registered to the email the user specified.
 
 ### Mobile footer redesign (applied)
@@ -285,7 +285,7 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
 - Verified: `tsc --noEmit` passes; `next build` passes; Playwright captures at 375, 390 and 430px reviewed. Awaiting user visual approval.
 
 ### Step 05 — All Remaining Frontend Pages (READY FOR USER APPROVAL)
-- **16 new routes** created, all fully responsive (mobile + desktop), using the established TCL11 design system (black/red/gold/white, NeonCard panels, gold gradient headings, red glow effects).
+- **16 new routes** created, all fully responsive (mobile + desktop), using the established BetBoos365 design system (black/red/gold/white, NeonCard panels, gold gradient headings, red glow effects).
 - **Game pages (4):**
   - `/casino` — combined game catalogue (Popular + Featured + Casino + Slots + Live Casino); PageBanner hero, two NeonCard game grid sections.
   - `/slots` — 16 slot games in a 3→5 column responsive grid.
@@ -436,34 +436,34 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
   - Frontend `tsc --noEmit`: 0 errors (unchanged).
   - `prisma generate`: Prisma client generated successfully.
   - **PostgreSQL 17.11 installed via winget** (`C:\Program Files\PostgreSQL\17`, service `postgresql-x64-17`, running on port 5432, superuser `postgres`).
-  - **Initial migration applied:** `prisma migrate dev --name init` → migration `20261110050243_init` (438 lines of SQL) applied cleanly. All 18 tables created in the `public` schema of database `tcl11` (17 model tables + `_prisma_migrations`).
+  - **Initial migration applied:** `prisma migrate dev --name init` → migration `20261110050243_init` (438 lines of SQL) applied cleanly. All 18 tables created in the `public` schema of database `betboos365` (17 model tables + `_prisma_migrations`).
   - **Seed script executed:** `prisma db seed` ran without error, populated all seeded tables with exact expected counts — users=4, user_profiles=4, game_providers=5, games=14, sports=4, leagues=5, teams=12, sport_matches=7, promotions=6, notifications=5, support_tickets=2, ticket_messages=3, audit_logs=7, contact_submissions=1. Association tables (game_launches, user_promotions, refresh_tokens) correctly empty — populated at runtime.
   - **Backend booted against live DB** (`node dist/main.js`): Nest application started, PrismaService logged `Database connection established`, Prisma connection pool opened with 5 connections, all 35+ routes registered, server listening on `http://localhost:3200`.
   - **End-to-end API smoke test (all passed):**
     - `GET /api/v1/games/providers` → returned 5 seeded providers.
     - `GET /api/v1/promotions` → returned seeded promotions with correct `badge`/`minVipLevel` fields.
-    - `POST /api/v1/auth/login` (demo@tcl11.com / Test1234) → issued JWT access + refresh tokens; refresh token persisted to `refresh_tokens` table (verified 0→1 row delta).
+    - `POST /api/v1/auth/login` (demo@betboos365.com / Test1234) → issued JWT access + refresh tokens; refresh token persisted to `refresh_tokens` table (verified 0→1 row delta).
     - `GET /api/v1/users/me` → returned the demo user record from DB.
     - `GET /api/v1/profiles/me` → returned profile with `Decimal` fields correctly serialized as JSON numbers.
     - `GET /api/v1/notifications` → returned the demo user's 2 seeded notifications.
     - Admin login + `GET /api/v1/admin/dashboard` → returned live DB counts (4 users, 14 games, 6 promotions, 2 open tickets) via parallel `prisma.*.count()` queries.
     - Non-admin user hitting `/admin/dashboard` → `403 Forbidden` (RBAC guard works correctly against DB-sourced roles).
-  - **No frontend files modified.** **`.env` is gitignored** (new `server/.gitignore` added; `.env` holds local-dev credentials only — `postgres:postgres@localhost:5432/tcl11`).
+  - **No frontend files modified.** **`.env` is gitignored** (new `server/.gitignore` added; `.env` holds local-dev credentials only — `postgres:postgres@localhost:5432/betboos365`).
 
 ### Deployment — Production (2026-11-10, promoted from the approved Preview)
-- **Approved by user** on 2026-11-10. Promoted via `vercel promote <preview-url>` (same build artifact — no rebuild), producing deployment `dpl_EmGXcaWKyPR8NBxUasnHSXSqe6Jv` on the existing project `salman8809/tcl11-website`. **No duplicate project created.** No code changes.
-- **Production URL:** `https://tcl11-website.vercel.app` (status `● Ready`, target `production`).
-- **Production verification:** All 17 public routes returned `200` (`/`, `/casino`, `/sports`, `/live-casino`, `/slots`, `/promotion`, `/login`, `/signup`, `/profile`, `/about`, `/contact`, `/blog`, `/esports`, `/chat`, `/faq`, `/privacy`, `/terms`). `/dev/design-system` correctly `404` in production. Production homepage HTML contains the TCL11 title, logo, hero banner, hero copy, Popular/Featured Games, VIP, AUD, Payment markers — identical to the approved Preview.
+- **Approved by user** on 2026-11-10. Promoted via `vercel promote <preview-url>` (same build artifact — no rebuild), producing deployment `dpl_EmGXcaWKyPR8NBxUasnHSXSqe6Jv` on the existing project `salman8809/betboos365-website`. **No duplicate project created.** No code changes.
+- **Production URL:** `https://betboos365-website.vercel.app` (status `● Ready`, target `production`).
+- **Production verification:** All 17 public routes returned `200` (`/`, `/casino`, `/sports`, `/live-casino`, `/slots`, `/promotion`, `/login`, `/signup`, `/profile`, `/about`, `/contact`, `/blog`, `/esports`, `/chat`, `/faq`, `/privacy`, `/terms`). `/dev/design-system` correctly `404` in production. Production homepage HTML contains the BetBoos365 title, logo, hero banner, hero copy, Popular/Featured Games, VIP, AUD, Payment markers — identical to the approved Preview.
 
 ### Deployment — Preview (2026-11-10, approved and promoted — history)
 - **Vercel account:** `salman8809` (CLI 65.12.1, already logged in; the user's intended account email is listed as `salmanrorvi72@gmail.com` — not re-verified against the account, but the `.vercel/project.json` was already present from earlier so this is their existing linked project).
-- **Target project:** `salman8809/tcl11-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`) — the previously-linked project. **No duplicate created.**
+- **Target project:** `salman8809/betboos365-website` (id `prj_zkHZG40V7Ca3CcNOv9Gvj9b5yWif`) — the previously-linked project. **No duplicate created.**
 - **What was deployed:** The Next.js frontend only (Next.js 16.4.5, 20 static routes). The NestJS backend was NOT deployed to Vercel; see "Backend hosting" below.
 - **Guardrail added:** New `.vercelignore` at repo root excludes `server/` (backend + its `.env`), `docs/`, `*.md`, `scratchpad/`, `prisma/`, `.env*`, `coverage/`, `.next/`. This is what keeps the backend and all local-dev credentials off Vercel.
-- **Preview URL:** `https://tcl11-website-a5sdb5kq1-salman8809.vercel.app` (deployment `dpl_4FHgU5CLiqAZjDTrJPo5iG2uDdYs`, target `preview`, protected by Vercel Authentication — only Vercel-logged-in users can view). Production URL `https://tcl11-website.vercel.app` was NOT touched.
+- **Preview URL:** `https://betboos365-website-a5sdb5kq1-salman8809.vercel.app` (deployment `dpl_4FHgU5CLiqAZjDTrJPo5iG2uDdYs`, target `preview`, protected by Vercel Authentication — only Vercel-logged-in users can view). Production URL `https://betboos365-website.vercel.app` was NOT touched.
 - **Local pre-flight verification:** `next build` passed cleanly, 20 static routes, 0 TypeScript errors.
 - **Preview smoke test (HEAD):** 17 public routes returned `200`: `/`, `/casino`, `/sports`, `/live-casino`, `/slots`, `/promotion`, `/login`, `/signup`, `/profile`, `/about`, `/contact`, `/blog`, `/esports`, `/chat`, `/faq`, `/privacy`, `/terms`. `/dev/design-system` correctly `404` in production. Unknown routes correctly `404`.
-- **Preview content check:** Homepage HTML (~199 KB) contains `<title>TCL11</title>`, the logo (`tcl11-logo.png`), hero banner (`banner-01.png`), hero copy ("GET 100%", "WELCOME BONUS"), "Popular Games" and "Featured Games" section headings, VIP section, "AUD" currency, "Payment" section.
+- **Preview content check:** Homepage HTML (~199 KB) contains `<title>BetBoos365</title>`, the logo (`betboos365-logo.png`), hero banner (`banner-01.png`), hero copy ("GET 100%", "WELCOME BONUS"), "Popular Games" and "Featured Games" section headings, VIP section, "AUD" currency, "Payment" section.
 - **Production env vars:** None configured (`vercel env ls` = 0 vars), and none required — the frontend has zero backend wiring at this point (no `fetch`, no `/api/v1` references, no `NEXT_PUBLIC_*` reads). All data on the public pages is sourced from `src/data/mock.ts`.
 - **Backend hosting (deferred, requires decision):** The NestJS backend in `server/` cannot be deployed to Vercel — Vercel's serverless functions are not a fit for a NestJS process, its Socket.IO WebSocket gateway, or a Prisma connection pool. Recommended paths: Render, Railway, Fly.io, DigitalOcean App Platform. **This is not blocking the current deploy** because the frontend doesn't call the backend yet. When the frontend is wired to the backend, that step also needs: (a) a managed production PostgreSQL (Neon / Supabase / Vercel Postgres / RDS — NOT the local `postgres:postgres` dev DB), (b) backend host chosen and deployed, and (c) `NEXT_PUBLIC_API_URL` set on Vercel to point at the live backend.
 
@@ -517,7 +517,7 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
     - `PATCH /api/me/profile` with `{"displayName":"…"}` → 200; subsequent `GET /profile` HTML shows the new display name (DB updated).
 
 ### Production deployment preparation (2026-11-10, awaiting user-executed launch)
-- **Infrastructure chosen by the owner:** Vercel (existing `tcl11-website` project) for the Next.js frontend; Railway (new service) for the NestJS backend; Neon (new project, Postgres 17, Singapore region recommended) for PostgreSQL; Prisma as the ORM (unchanged).
+- **Infrastructure chosen by the owner:** Vercel (existing `betboos365-website` project) for the Next.js frontend; Railway (new service) for the NestJS backend; Neon (new project, Postgres 17, Singapore region recommended) for PostgreSQL; Prisma as the ORM (unchanged).
 - **Files added:**
   - `server/Dockerfile` — multi-stage build (Node 22 bookworm-slim), non-root `node` user, `tini` as PID 1 for clean zombie reaping, Prisma engines + CLI preserved in the runtime image. CMD runs `npx prisma migrate deploy && node dist/main.js` so pending migrations apply automatically on every boot (idempotent — Prisma skips rows already in `_prisma_migrations`).
   - `server/.dockerignore` — excludes `node_modules`, `dist`, every `.env*` (defense in depth — Railway's variable UI is the only source of env values in production), docs, git metadata.
@@ -562,7 +562,7 @@ Step 01 was accepted by the user (they issued Step 02). Step 03 must NOT start u
   - 3 new enums: `TransactionStatus` (PENDING/APPROVED/REJECTED/COMPLETED), `PaymentType` (SEND_MONEY/CASH_OUT), `WalletLedgerType` (DEPOSIT_CREDIT, WITHDRAWAL_RESERVE/RELEASE/DEBIT, ADJUSTMENT_CREDIT/DEBIT). 7 new values appended to `AuditAction` (DEPOSIT/WITHDRAWAL SUBMITTED/APPROVED/REJECTED/COMPLETED).
   - 5 new models: `PaymentProvider` (seeded with the 4 BD services), `Wallet` (one-per-user, `availableBalance` + `reservedBalance` + optimistic-locking `version`), `WalletTransaction` (immutable append-only ledger, indexed on wallet+createdAt and reference), `DepositRequest` (user+provider+paymentType+amount+trxRef, unique `idempotencyKey = userId:providerId:TRX`), `WithdrawalRequest` (user+provider+phone+amount, `reservationTxId` binds to the ledger row that reserved the funds).
   - All monetary fields `Decimal(14,2)`. Every FK indexed. User cascade-deletes own deposits/withdrawals/wallet; provider deletes `RESTRICT` (protects financial history).
-- **Migration (`20261111030000_wallet_and_payments`):** 139-line idempotent SQL — enum extensions guarded with `IF NOT EXISTS`, new tables with FKs + unique indexes, seeds the 4 payment providers via `gen_random_uuid()` + `ON CONFLICT DO NOTHING`, backfills a wallet row for every existing user. Applied cleanly to the local `tcl11` DB (`_prisma_migrations` now has 3 rows).
+- **Migration (`20261111030000_wallet_and_payments`):** 139-line idempotent SQL — enum extensions guarded with `IF NOT EXISTS`, new tables with FKs + unique indexes, seeds the 4 payment providers via `gen_random_uuid()` + `ON CONFLICT DO NOTHING`, backfills a wallet row for every existing user. Applied cleanly to the local `betboos365` DB (`_prisma_migrations` now has 3 rows).
 - **NestJS backend (`server/src/wallet/`):**
   - `wallet.service.ts` — `credit()`, `reserve()` (with optimistic-lock + `InsufficientBalanceError`), `releaseReservation()`, `debitReservation()`. Every mutation goes with a matched `walletTransaction` ledger write inside the same `prisma.$transaction` callback (same `Tx` client), so a crash between the two is impossible.
   - `deposits.service.ts` — create (writes idempotency key, P2002 → 409 Conflict), user list, admin list (status + provider + search filters), `adminApprove` (atomic: lock-via-updateMany on PENDING, upsert wallet, credit, bump profile `totalDeposits`, audit log), `adminReject` (lock-via-updateMany, audit).

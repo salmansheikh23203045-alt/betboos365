@@ -5,7 +5,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { cn } from "@/lib/cn";
 
-export const metadata: Metadata = { title: "Promotions | TCL11 Admin" };
+export const metadata: Metadata = { title: "Promotions | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 interface Promo {

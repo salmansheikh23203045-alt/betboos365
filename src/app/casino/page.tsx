@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { CASINO_GAMES, SLOT_GAMES, LIVE_CASINO_GAMES } from "@/data/pages";
 import { POPULAR_GAMES, FEATURED_GAMES } from "@/data/mock";
 
-export const metadata: Metadata = { title: "Casino | TCL11" };
+export const metadata: Metadata = { title: "Casino | BetBoos365" };
 
 const ALL_GAMES = [...POPULAR_GAMES, ...FEATURED_GAMES, ...CASINO_GAMES, ...SLOT_GAMES, ...LIVE_CASINO_GAMES];
 const uniqueGames = ALL_GAMES.filter((g, i, arr) => arr.findIndex((x) => x.id === g.id) === i);

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { AccountRecordsClient } from "./AccountRecordsClient";
 
-export const metadata = { title: "অ্যাকাউন্ট রেকর্ড — TCL11" };
+export const metadata = { title: "অ্যাকাউন্ট রেকর্ড — BetBoos365" };
 
 export default async function AccountRecordsPage() {
   const user = await getSession();

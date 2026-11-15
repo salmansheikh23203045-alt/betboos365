@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { backendFetch } from "@/lib/api";
 import { PromotionForm } from "../../PromotionForm";
 
-export const metadata: Metadata = { title: "Edit Promotion | TCL11 Admin" };
+export const metadata: Metadata = { title: "Edit Promotion | BetBoos365 Admin" };
 export const dynamic = "force-dynamic";
 
 interface Promo {

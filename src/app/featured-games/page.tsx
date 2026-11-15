@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FEATURED_GAMES } from "@/data/mock";
 import { BN } from "@/i18n/bn";
 
-export const metadata: Metadata = { title: `${BN.nav.featuredGames} | TCL11` };
+export const metadata: Metadata = { title: `${BN.nav.featuredGames} | BetBoos365` };
 
 export default function FeaturedGamesPage() {
   return (

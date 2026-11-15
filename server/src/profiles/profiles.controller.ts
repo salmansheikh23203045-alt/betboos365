@@ -2,10 +2,12 @@ import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { UpdateProfileDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators';
+import { CurrentUser, PlayerOnly } from '../common/decorators';
 
 @Controller('profiles')
 @UseGuards(JwtAuthGuard)
+// Profiles are a player feature: Admin, Sub Admin and Agent accounts have none.
+@PlayerOnly()
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 

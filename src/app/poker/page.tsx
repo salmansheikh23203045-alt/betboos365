@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ICONS } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
 
-export const metadata: Metadata = { title: `${BN.nav.poker} | TCL11` };
+export const metadata: Metadata = { title: `${BN.nav.poker} | BetBoos365` };
 
 export default function PokerPage() {
   return (

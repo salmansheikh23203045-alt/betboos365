@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageBanner } from "@/components/pages/PageBanner";
 import { NeonCard } from "@/components/ui/NeonCard";
 
-export const metadata: Metadata = { title: "Privacy Policy | TCL11" };
+export const metadata: Metadata = { title: "Privacy Policy | BetBoos365" };
 
 const SECTIONS = [
   { title: "1. Information We Collect", body: "We collect information you provide when creating an account (name, email, phone number, date of birth), payment information for transactions, and technical data such as your IP address, device type, and browser information. We may also collect data about your gaming activity to improve our services and ensure fair play." },
@@ -12,8 +12,8 @@ const SECTIONS = [
   { title: "5. Cookies and Tracking", body: "We use cookies and similar technologies to enhance your experience, remember your preferences, and analyze platform usage. You can control cookie settings through your browser. Disabling certain cookies may affect platform functionality." },
   { title: "6. Your Rights", body: "You have the right to: access your personal data, request corrections to inaccurate data, request deletion of your data (subject to legal retention requirements), opt out of marketing communications, and lodge a complaint with a data protection authority." },
   { title: "7. Data Retention", body: "We retain your personal data for as long as your account is active and for the period required by applicable laws and regulations. After account closure, we may retain certain data for legal, regulatory, and dispute resolution purposes." },
-  { title: "8. Changes to This Policy", body: "We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated revision date. We encourage you to review this policy periodically. Continued use of TCL11 after changes constitutes acceptance of the updated policy." },
-  { title: "9. Contact Us", body: "For questions about this Privacy Policy or to exercise your data rights, please contact our Data Protection team at privacy@tcl11.com or through our Contact page." },
+  { title: "8. Changes to This Policy", body: "We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated revision date. We encourage you to review this policy periodically. Continued use of BetBoos365 after changes constitutes acceptance of the updated policy." },
+  { title: "9. Contact Us", body: "For questions about this Privacy Policy or to exercise your data rights, please contact our Data Protection team at privacy@betboos365.com or through our Contact page." },
 ];
 
 export default function PrivacyPage() {

@@ -29,7 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const MOBILE_TABS: NavItem[] = [
   { id: "home", label: BN.nav.home, href: "/", icon: "House" },
   { id: "casino", label: BN.nav.casino, href: "/casino", icon: "Dices" },
-  { id: "sports", label: BN.nav.sports, href: "/sports", icon: "Trophy" },
+  { id: "deposit", label: BN.nav.deposit, href: "/profile/deposit", icon: "Wallet" },
   { id: "promotion", label: BN.nav.promotion, href: "/promotion", icon: "Gift" },
   { id: "profile", label: BN.nav.profile, href: "/profile", icon: "User" },
 ];
@@ -44,10 +44,10 @@ export const POPULAR_CATEGORIES = [
 ] as const;
 
 export const POPULAR_GAMES: Game[] = [
-  { id: "p-slot", title: "SLOT", provider: "TCL11", category: "slots", isFree: false },
-  { id: "p-bonza", title: "BONZA", provider: "TCL11", category: "slots", isFree: false },
-  { id: "p-aristocrat", title: "ARISTOCRAT", provider: "TCL11", category: "slots", isFree: false },
-  { id: "p-live", title: "LIVE", provider: "TCL11", category: "live-casino", isFree: false },
+  { id: "p-slot", title: "SLOT", provider: "BetBoos365", category: "slots", isFree: false },
+  { id: "p-bonza", title: "BONZA", provider: "BetBoos365", category: "slots", isFree: false },
+  { id: "p-aristocrat", title: "ARISTOCRAT", provider: "BetBoos365", category: "slots", isFree: false },
+  { id: "p-live", title: "LIVE", provider: "BetBoos365", category: "live-casino", isFree: false },
 ];
 
 export const FEATURED_GAMES: Game[] = [

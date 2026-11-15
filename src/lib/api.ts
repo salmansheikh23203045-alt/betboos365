@@ -49,6 +49,10 @@ export async function backendFetch(
   // If BACKEND_API_URL is not set (e.g. on Vercel serverless runtime),
   // invoke NestJS directly in-process via handleNestRequest to avoid
   // self-referential HTTP network fetching (which fails due to Vercel Auth/timeouts).
+  //
+  // NOTE: If testing locally with a dedicated NestJS backend, set
+  // BACKEND_API_URL=http://localhost:3200/api/v1 to force HTTP usage
+  // and avoid the in-process NestJS lifecycle.
   if (!process.env.BACKEND_API_URL) {
     try {
       const fullUrl = `http://localhost/api/v1${path.startsWith("/") ? path : `/${path}`}`;
@@ -59,8 +63,10 @@ export async function backendFetch(
       return await handleNestRequest(req);
     } catch (err) {
       const message = err instanceof Error ? err.message : "In-process backend error";
+      const errName = err instanceof Error ? err.name : "Error";
+      console.error(`[BFF Error] In-process NestJS request failed for ${path} (${errName}): ${message}`);
       return new Response(
-        JSON.stringify({ message: `Backend error: ${message}` }),
+        JSON.stringify({ message: `Backend error (${errName}): ${message}` }),
         {
           status: 500,
           headers: { "content-type": "application/json" },
@@ -77,12 +83,11 @@ export async function backendFetch(
     });
   } catch (err) {
     // ECONNREFUSED / ENOTFOUND / aborted / DNS: the backend is unreachable.
-    // Return a synthetic 503 Response so callers that branch on `.ok` stay on
-    // their existing graceful-failure path instead of taking down the page.
-    const message =
-      err instanceof Error ? err.message : "Backend unreachable";
+    const message = err instanceof Error ? err.message : "Backend unreachable";
+    const code = (err as NodeJS.ErrnoException).code ?? "UNKNOWN";
+    console.error(`[BFF Error] Network connection failed to backend at ${backendUrl(path)} [Code: ${code}]: ${message}`);
     return new Response(
-      JSON.stringify({ message: `Backend unreachable: ${message}` }),
+      JSON.stringify({ message: `Backend unreachable [${code}]: ${message}` }),
       {
         status: 503,
         headers: { "content-type": "application/json" },

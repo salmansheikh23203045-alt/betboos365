@@ -16,10 +16,10 @@ export class GamesService {
       if (cat) where.category = cat;
     }
     if (query.provider) {
-      where.provider = { name: { contains: query.provider, mode: 'insensitive' } };
+      where.provider = { name: { contains: query.provider } };
     }
     if (query.search) {
-      where.title = { contains: query.search, mode: 'insensitive' };
+      where.title = { contains: query.search };
     }
 
     const page = query.page ?? 1;

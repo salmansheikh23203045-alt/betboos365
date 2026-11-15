@@ -1,8 +1,8 @@
-# TCL11 Backend Architecture
+# BetBoos365 Backend Architecture
 
 ## Overview
 
-The TCL11 backend is a modular NestJS application providing REST APIs and WebSocket real-time communication for the TCL11 online gaming platform.
+The BetBoos365 backend is a modular NestJS application providing REST APIs and WebSocket real-time communication for the BetBoos365 online gaming platform.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐

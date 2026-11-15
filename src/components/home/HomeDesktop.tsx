@@ -1,13 +1,13 @@
 "use client";
 
-import { FEATURED_GAMES, POPULAR_GAMES, SPORTS_PROMO, TRANSACTIONS, VIP_STATUS } from "@/data/mock";
+import { FEATURED_GAMES, POPULAR_GAMES, SPORTS_PROMO, TRANSACTIONS } from "@/data/mock";
 import { GameCard } from "@/components/games/GameCard";
 import { GameCarousel } from "@/components/games/GameCarousel";
 import { GameGrid } from "@/components/games/GameGrid";
 import { CategoryTabs } from "@/components/games/CategoryTabs";
 import { PromotionBanner } from "@/components/promo/PromotionBanner";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
-import { VIPProgressCard } from "@/components/vip/VIPProgressCard";
+import { SportsCarousel } from "@/components/home/SportsCarousel";
 import { LiveTransactionTable } from "@/components/transactions/LiveTransactionTable";
 import { WhyChooseGrid } from "@/components/home/WhyChooseGrid";
 import { ShortcutGrid, SHORTCUTS } from "@/components/home/ShortcutGrid";
@@ -18,7 +18,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
  * HomeDesktop — desktop homepage body (lg and up).
  * Two columns as in the reference: main (2/3) and right rail (1/3).
  * Main: welcome banner, shortcuts, popular games, featured games.
- * Rail: VIP panel, live transactions, sports banner, why choose.
+ * Rail: Sports Carousel, live transactions, sports banner, why choose.
  */
 export function HomeDesktop() {
   return (
@@ -53,7 +53,7 @@ export function HomeDesktop() {
       </div>
 
       <aside className="min-w-0 space-y-4">
-        <VIPProgressCard status={VIP_STATUS} />
+        <SportsCarousel variant="desktop" />
         <LiveTransactionTable transactions={TRANSACTIONS} />
         <PromotionBanner promo={SPORTS_PROMO} variant="compact" tone="gold-gold" artSrc="/images/sports/sports-art.svg" artLabel="Sports betting artwork" />
         <WhyChooseGrid />

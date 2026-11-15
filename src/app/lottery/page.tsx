@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ICONS } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
 
-export const metadata: Metadata = { title: `${BN.nav.lottery} | TCL11` };
+export const metadata: Metadata = { title: `${BN.nav.lottery} | BetBoos365` };
 
 export default function LotteryPage() {
   return (

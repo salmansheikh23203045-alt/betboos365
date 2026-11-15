@@ -9,7 +9,8 @@ import {
   useState,
 } from "react";
 
-export type Role = "user" | "vip" | "moderator" | "admin" | "super_admin";
+import type { Role } from "@/lib/roles";
+export type { Role };
 
 export interface SessionUser {
   id: string;
@@ -18,6 +19,9 @@ export interface SessionUser {
   firstName: string;
   lastName: string;
   roles: Role[];
+  permissions?: string[];
+  /** Temporary password still in use; the account must change it first. */
+  mustChangePassword?: boolean;
 }
 
 interface AuthState {

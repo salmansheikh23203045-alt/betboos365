@@ -6,7 +6,7 @@ import { BN } from "@/i18n/bn";
 import { ICONS } from "@/lib/icons";
 
 export const metadata: Metadata = {
-  title: `${BN.fishing.title} | TCL11`,
+  title: `${BN.fishing.title} | BetBoos365`,
   description:
     "ফিশিং গেম — সমুদ্রতলের আকর্ষণীয় শিকার অভিজ্ঞতা, ভার্চুয়াল পয়েন্টের ডেমো।",
 };

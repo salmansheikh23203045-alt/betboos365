@@ -1,4 +1,4 @@
-# TCL11 — Component Architecture (proposed)
+# BetBoos365 — Component Architecture (proposed)
 
 **Status:** proposal only. Nothing in this document is implemented yet. It becomes binding after Step 01 approval.
 **Based on:** `docs/UI_REFERENCE_ANALYSIS.md`.
@@ -103,7 +103,7 @@ TCL betting website/
 │   │       ├── CarouselArrow.tsx
 │   │       ├── IconTile.tsx                # red-glow square with icon
 │   │       ├── AssetPlaceholder.tsx        # labelled neutral placeholder for missing assets
-│   │       └── Logo.tsx                    # TCL11 logo, variant prop
+│   │       └── Logo.tsx                    # BetBoos365 logo, variant prop
 │   ├── data/                               # mock data only, typed (until Step 06)
 │   │   ├── navigation.ts
 │   │   ├── heroSlides.ts

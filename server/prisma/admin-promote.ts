@@ -19,9 +19,20 @@
  * menu → Shell), then run `npm run admin:promote -- <your_username>`. Wait
  * for the "Promoted" line before closing.
  */
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+function parseRoles(value: unknown): UserRole[] {
+  if (Array.isArray(value)) return value as UserRole[];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed as UserRole[];
+    } catch { /* fall through */ }
+  }
+  return [];
+}
 
 function usage(): never {
   console.error(
@@ -36,8 +47,14 @@ function usage(): never {
 }
 
 async function listAdmins() {
+  // MySQL Json field: use an OR of `array_contains` checks (no `hasSome`).
   const admins = await prisma.user.findMany({
-    where: { roles: { hasSome: [UserRole.admin, UserRole.super_admin] } },
+    where: {
+      OR: [
+        { roles: { array_contains: UserRole.admin } },
+        { roles: { array_contains: UserRole.super_admin } },
+      ],
+    },
     select: { username: true, email: true, roles: true, isActive: true, createdAt: true },
     orderBy: { createdAt: 'asc' },
   });
@@ -49,7 +66,7 @@ async function listAdmins() {
   for (const a of admins) {
     const activeFlag = a.isActive ? '' : ' [DEACTIVATED]';
     console.log(
-      `  • ${a.username}${activeFlag} <${a.email ?? 'no-email'}> roles=[${a.roles.join(',')}] since ${a.createdAt.toISOString()}`,
+      `  • ${a.username}${activeFlag} <${a.email ?? 'no-email'}> roles=[${parseRoles(a.roles).join(',')}] since ${a.createdAt.toISOString()}`,
     );
   }
 }
@@ -68,7 +85,8 @@ async function setAdmin(username: string, mode: 'grant' | 'revoke') {
     process.exit(1);
   }
 
-  const already = user.roles.includes(UserRole.admin);
+  const currentRoles = parseRoles(user.roles);
+  const already = currentRoles.includes(UserRole.admin);
   if (mode === 'grant' && already) {
     console.log(`"${user.username}" already has admin. No change.`);
     return;
@@ -80,12 +98,12 @@ async function setAdmin(username: string, mode: 'grant' | 'revoke') {
 
   const nextRoles =
     mode === 'grant'
-      ? Array.from(new Set([...user.roles, UserRole.admin]))
-      : user.roles.filter((r) => r !== UserRole.admin);
+      ? Array.from(new Set([...currentRoles, UserRole.admin]))
+      : currentRoles.filter((r) => r !== UserRole.admin);
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { roles: { set: nextRoles } },
+    data: { roles: nextRoles as unknown as Prisma.InputJsonValue },
   });
 
   await prisma.auditLog.create({

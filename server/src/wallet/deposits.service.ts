@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -17,6 +18,7 @@ import { AuditService } from '../audit/audit.service';
 import { WalletService } from './wallet.service';
 import { CreateDepositDto, AdminDecisionDto } from './dto';
 import { WALLET_CONFIG } from './wallet.config';
+import { normalizeBdPhone } from '../common/utils/phone';
 import { depositView, DepositView } from './shape';
 
 @Injectable()
@@ -46,6 +48,15 @@ export class DepositsService {
       throw new BadRequestException('Unknown or inactive payment provider');
     }
 
+    // Deposits may be sent from ANY mobile number (unlike withdrawals, which
+    // are paid only to the registered number). The sender number is optional
+    // and is only checked for being a real Bangladeshi mobile number.
+    let senderPhone: string | null = null;
+    if (dto.senderPhone !== undefined && dto.senderPhone.trim() !== '') {
+      senderPhone = normalizeBdPhone(dto.senderPhone);
+      if (!senderPhone) throw new BadRequestException('Enter a valid Bangladeshi mobile number for the sending number.');
+    }
+
     // Idempotency: one deposit per (user, provider, transactionReference). Any
     // duplicate — intentional or accidental — collapses onto the first row.
     const idempotencyKey = `${userId}:${provider.id}:${dto.transactionReference.toUpperCase()}`;
@@ -59,6 +70,7 @@ export class DepositsService {
           amount: new Prisma.Decimal(dto.amount),
           currency: WALLET_CONFIG.currency,
           agentNumber: WALLET_CONFIG.agentNumber,
+          senderPhone,
           transactionReference: dto.transactionReference,
           idempotencyKey,
         },
@@ -142,15 +154,19 @@ export class DepositsService {
     if (search) {
       where.OR = [
         { id: { equals: search } },
-        { transactionReference: { contains: search, mode: 'insensitive' } },
-        { user: { username: { contains: search, mode: 'insensitive' } } },
+        { transactionReference: { contains: search } },
+        { user: { username: { contains: search } } },
       ];
     }
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.depositRequest.findMany({
         where,
-        include: { provider: true, user: { select: { id: true, username: true } } },
+        include: {
+          provider: true,
+          user: { select: { id: true, username: true } },
+          processedBy: { select: { id: true, username: true } },
+        },
         orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
@@ -161,6 +177,9 @@ export class DepositsService {
       data: data.map((d) => ({
         ...depositView(d),
         user: d.user ? { id: d.user.id, username: d.user.username } : null,
+        processedBy: d.processedBy
+          ? { id: d.processedBy.id, username: d.processedBy.username }
+          : null,
       })),
       meta: {
         total,
@@ -180,6 +199,10 @@ export class DepositsService {
   ): Promise<DepositView> {
     const deposit = await this.prisma.depositRequest.findUnique({ where: { id } });
     if (!deposit) throw new NotFoundException('Deposit not found');
+    // Nobody credits or decides their own deposit, whatever their role.
+    if (deposit.userId === adminId) {
+      throw new ForbiddenException('You cannot process your own deposit request.');
+    }
     if (deposit.status !== TransactionStatus.PENDING) {
       throw new ConflictException(`Deposit is already ${deposit.status.toLowerCase()}`);
     }
@@ -246,6 +269,10 @@ export class DepositsService {
   ): Promise<DepositView> {
     const deposit = await this.prisma.depositRequest.findUnique({ where: { id } });
     if (!deposit) throw new NotFoundException('Deposit not found');
+    // Nobody credits or decides their own deposit, whatever their role.
+    if (deposit.userId === adminId) {
+      throw new ForbiddenException('You cannot process your own deposit request.');
+    }
     if (deposit.status !== TransactionStatus.PENDING) {
       throw new ConflictException(`Deposit is already ${deposit.status.toLowerCase()}`);
     }

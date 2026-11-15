@@ -3,7 +3,7 @@ import { HomeMobile } from "@/components/home/HomeMobile";
 import { PaymentMethods } from "@/components/payments/PaymentMethods";
 import { PAYMENT_METHODS } from "@/data/mock";
 
-/* TCL11 homepage. Structure follows the reference image:
+/* BetBoos365 homepage. Structure follows the reference image:
  * header (layout) → ticker (layout, desktop) → body → payment methods → footer (layout).
  * Developer design-system showcase lives at /dev/design-system (not linked, disabled in production). */
 export default function HomePage() {

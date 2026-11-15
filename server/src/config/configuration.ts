@@ -26,3 +26,23 @@ export default () => ({
   },
   logLevel: process.env.LOG_LEVEL ?? 'debug',
 });
+
+const DEV_JWT_SECRETS = ['dev-secret-change-in-production'];
+
+// Fail fast on a misconfigured production deploy instead of booting with a
+// guessable signing key or no database.
+export function validateEnv(env: Record<string, unknown>) {
+  if (env.NODE_ENV !== 'production') return env;
+  const problems: string[] = [];
+  const secret = typeof env.JWT_SECRET === 'string' ? env.JWT_SECRET : '';
+  if (secret.length < 32 || DEV_JWT_SECRETS.includes(secret) || secret.startsWith('dev_only')) {
+    problems.push('JWT_SECRET must be a non-default secret of at least 32 characters');
+  }
+  if (typeof env.MYSQL_DATABASE_URL !== 'string' || !env.MYSQL_DATABASE_URL.startsWith('mysql://')) {
+    problems.push('MYSQL_DATABASE_URL must be a mysql:// connection string');
+  }
+  if (problems.length > 0) {
+    throw new Error(`Invalid production configuration: ${problems.join('; ')}`);
+  }
+  return env;
+}

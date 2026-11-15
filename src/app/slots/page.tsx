@@ -6,7 +6,7 @@ import { NeonCard } from "@/components/ui/NeonCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SLOT_GAMES } from "@/data/pages";
 
-export const metadata: Metadata = { title: "Slots | TCL11" };
+export const metadata: Metadata = { title: "Slots | BetBoos365" };
 
 export default function SlotsPage() {
   return (

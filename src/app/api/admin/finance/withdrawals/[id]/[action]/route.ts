@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api";
 import { withAuthedBackend } from "@/lib/session";
 
-const ALLOWED = new Set(["approve", "reject", "complete"]);
+const ALLOWED = new Set(["approve", "reject", "complete", "assign"]);
 
 export async function POST(
   req: Request,

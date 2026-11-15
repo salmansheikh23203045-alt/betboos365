@@ -134,7 +134,7 @@ export function HeroCarousel({ variant }: HeroCarouselProps) {
               fill
               priority={index === 0}
               sizes={v.sizes}
-              className="object-cover"
+              className={cn("size-full", slide.hideOverlay ? "object-contain bg-tcl-black" : "object-cover")}
               style={{ objectPosition: slide.objectPosition[variant] }}
             />
           </SwiperSlide>
@@ -142,31 +142,35 @@ export function HeroCarousel({ variant }: HeroCarouselProps) {
       </Swiper>
 
       {/* Left scrim keeps the copy readable over any artwork crop. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[75%] bg-gradient-to-r from-tcl-black/80 via-tcl-black/45 to-transparent"
-      />
+      {!HERO_SLIDES[active]?.hideOverlay && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[75%] bg-gradient-to-r from-tcl-black/80 via-tcl-black/45 to-transparent transition-opacity duration-300"
+        />
+      )}
 
-      {/* Static copy layer: same text on every slide, so it never moves during a transition. */}
-      <div className={cn("pointer-events-none absolute inset-y-0 left-0 z-20 flex flex-col justify-center gap-[clamp(3px,1cqw,8px)]", v.textWrap)}>
-        <span
-          className={cn(
-            "inline-flex w-fit items-center gap-1.5 rounded-pill border border-tcl-gold bg-tcl-black/60 px-3 py-1 font-bold uppercase tracking-wider text-tcl-gold",
-            v.pill,
-          )}
-        >
-          <ICONS.Crown aria-hidden="true" className="size-3.5" />
-          {WELCOME_PROMO.eyebrow}
-        </span>
-        <p className={cn(DISPLAY, "text-gold-gradient", v.title)}>{WELCOME_PROMO.title}</p>
-        <p className={cn(DISPLAY, "text-tcl-white", v.highlight)}>{WELCOME_PROMO.highlight}</p>
-        <p className={cn("font-semibold text-tcl-white", v.subtitle)}>{WELCOME_PROMO.subtitle}</p>
-        <div className="pointer-events-auto pt-[clamp(2px,0.6cqw,6px)]">
-          <SecondaryButton href={WELCOME_PROMO.ctaHref} size={v.button} arrow>
-            {WELCOME_PROMO.ctaLabel}
-          </SecondaryButton>
+      {/* Static copy layer: only shown on slides that do not have self-contained banner copy. */}
+      {!HERO_SLIDES[active]?.hideOverlay && (
+        <div className={cn("pointer-events-none absolute inset-y-0 left-0 z-20 flex flex-col justify-center gap-[clamp(3px,1cqw,8px)] transition-opacity duration-300", v.textWrap)}>
+          <span
+            className={cn(
+              "inline-flex w-fit items-center gap-1.5 rounded-pill border border-tcl-gold bg-tcl-black/60 px-3 py-1 font-bold uppercase tracking-wider text-tcl-gold",
+              v.pill,
+            )}
+          >
+            <ICONS.Crown aria-hidden="true" className="size-3.5" />
+            {WELCOME_PROMO.eyebrow}
+          </span>
+          <p className={cn(DISPLAY, "text-gold-gradient", v.title)}>{WELCOME_PROMO.title}</p>
+          <p className={cn(DISPLAY, "text-tcl-white", v.highlight)}>{WELCOME_PROMO.highlight}</p>
+          <p className={cn("font-semibold text-tcl-white", v.subtitle)}>{WELCOME_PROMO.subtitle}</p>
+          <div className="pointer-events-auto pt-[clamp(2px,0.6cqw,6px)]">
+            <SecondaryButton href={WELCOME_PROMO.ctaHref} size={v.button} arrow>
+              {WELCOME_PROMO.ctaLabel}
+            </SecondaryButton>
+          </div>
         </div>
-      </div>
+      )}
 
       <CarouselArrow
         direction="prev"

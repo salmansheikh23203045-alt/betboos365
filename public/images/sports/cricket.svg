@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<title>Cricket</title>
+<defs><radialGradient id="glow" cx="50%" cy="46%" r="50%"><stop offset="0" stop-color="#ffb52e" stop-opacity=".55"/><stop offset=".55" stop-color="#ff3d14" stop-opacity=".22"/><stop offset="1" stop-color="#ff1a00" stop-opacity="0"/></radialGradient><radialGradient id="rim" cx="50%" cy="50%" r="50%"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".35" stop-color="#ffc21a"/><stop offset=".7" stop-color="#c98a00"/><stop offset="1" stop-color="#ffdd6b"/></linearGradient><radialGradient id="shadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><linearGradient id="willow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b47a34"/><stop offset=".3" stop-color="#f3d39a"/><stop offset=".5" stop-color="#ffe8bd"/><stop offset=".7" stop-color="#eac786"/><stop offset="1" stop-color="#a86f2c"/></linearGradient>
+<linearGradient id="grip" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7a0606"/><stop offset=".45" stop-color="#e01e1e"/><stop offset="1" stop-color="#6a0505"/></linearGradient>
+<linearGradient id="sticker" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4a3a"/><stop offset="1" stop-color="#a00000"/></linearGradient>
+<radialGradient id="ball" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#ff8a7a"/><stop offset=".45" stop-color="#d81414"/><stop offset="1" stop-color="#5a0000"/></radialGradient>
+<clipPath id="bclip"><circle cx="85" cy="62" r="13"/></clipPath></defs>
+<circle cx="60" cy="52" r="56" fill="url(#glow)"/>
+<g transform="translate(53 53) rotate(38) scale(.82)">
+<rect x="-3.4" y="-51" width="6.8" height="33" rx="3.2" fill="url(#grip)"/>
+<path d="M-3.2 -46L3.2 -48.4M-3.2 -42.6L3.2 -45M-3.2 -39.2L3.2 -41.6M-3.2 -35.8L3.2 -38.2M-3.2 -32.4L3.2 -34.8M-3.2 -29L3.2 -31.4M-3.2 -25.6L3.2 -28M-3.2 -22.2L3.2 -24.6" stroke="#4a0303" stroke-width=".9" stroke-linecap="round"/>
+<ellipse cx="0" cy="-50.6" rx="3.6" ry="1.6" fill="#4a0303"/>
+<path d="M-4.2 -21C-7 -21 -9.6 -18 -9.6 -13.5L-9.6 31Q-9.6 37.5 -4 37.5L4 37.5Q9.6 37.5 9.6 31L9.6 -13.5C9.6 -18 7 -21 4.2 -21Z" fill="url(#willow)" stroke="#6b3d0f" stroke-width=".9"/>
+<path d="M-3.4 -21L0 -12.5L3.4 -21Z" fill="#9a6224"/>
+<path d="M0 -9V32" stroke="#fff6dc" stroke-opacity=".7" stroke-width="1.3" stroke-linecap="round"/>
+<rect x="-9.6" y="-6" width="19.2" height="10" fill="url(#sticker)"/>
+<path d="M-9.6 -3.6H9.6M-9.6 1.6H9.6" stroke="url(#gold)" stroke-width="1.1"/>
+<rect x="-9.6" y="25" width="19.2" height="3" fill="url(#sticker)"/>
+</g><ellipse cx="85" cy="78" rx="11.05" ry="4" fill="url(#shadow)"/>
+<g><circle cx="85" cy="62" r="13" fill="url(#ball)"/>
+<g clip-path="url(#bclip)"><g transform="translate(85 62) rotate(-32)">
+<path d="M-15 -2Q0 7 15 -2" fill="none" stroke="#fbe9c6" stroke-width="3.6"/>
+<path d="M-15 -2Q0 7 15 -2" fill="none" stroke="#9a0a0a" stroke-width=".7"/>
+<path d="M-15 -2Q0 7 15 -2" transform="translate(0 -2.6)" fill="none" stroke="#fff6e0" stroke-width="1" stroke-dasharray="1.1 1.1"/>
+<path d="M-15 -2Q0 7 15 -2" transform="translate(0 2.6)" fill="none" stroke="#fff6e0" stroke-width="1" stroke-dasharray="1.1 1.1"/></g></g>
+<circle cx="85" cy="62" r="13" fill="url(#rim)"/>
+<ellipse cx="80.32" cy="56.28" rx="3.9" ry="2.21" transform="rotate(-35 80.32 56.28)" fill="#fff" opacity=".55"/>
+<circle cx="85" cy="62" r="12.5" fill="none" stroke="#1a0606" stroke-opacity=".55" stroke-width="1"/></g>
+<path d="M20 22Q20.8 25.2 24 26Q20.8 26.8 20 30Q19.2 26.8 16 26Q19.2 25.2 20 22Z" fill="#fff3c4" opacity="0.9"/><path d="M104 27Q104.6 29.4 107 30Q104.6 30.6 104 33Q103.4 30.6 101 30Q103.4 29.4 104 27Z" fill="#fff3c4" opacity="0.9"/><path d="M99 83.4Q99.52 85.48 101.6 86Q99.52 86.52 99 88.6Q98.48 86.52 96.4 86Q98.48 85.48 99 83.4Z" fill="#fff3c4" opacity="0.9"/>
+</svg>

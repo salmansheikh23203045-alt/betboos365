@@ -6,7 +6,7 @@ import { SecondaryButton } from "@/components/ui/SecondaryButton";
 import { ICONS } from "@/lib/icons";
 import { BN } from "@/i18n/bn";
 
-export const metadata: Metadata = { title: "পাসওয়ার্ড রিসেট | TCL11" };
+export const metadata: Metadata = { title: "পাসওয়ার্ড রিসেট | BetBoos365" };
 
 export default function ForgotPasswordPage() {
   return (

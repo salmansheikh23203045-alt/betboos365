@@ -7,8 +7,10 @@ import { backendFetch } from "@/lib/api";
 import { NeonCard } from "@/components/ui/NeonCard";
 import { ICONS, type IconName } from "@/lib/icons";
 import { cn } from "@/lib/cn";
+import { formatBdt } from "@/lib/money";
+import { RevenueChart, type SeriesPoint } from "@/components/admin/RevenueChart";
 
-export const metadata: Metadata = { title: "Super Admin Dashboard | TCL11" };
+export const metadata: Metadata = { title: "Super Admin Dashboard | BetBoos365" };
 export const dynamic = "force-dynamic";
 
 interface DashboardStats {
@@ -28,6 +30,57 @@ async function fetchStats(accessToken: string): Promise<DashboardStats | null> {
   return body.data ?? null;
 }
 
+interface FinanceOverview {
+  allTime: {
+    deposits: { amount: number; count: number };
+    withdrawals: { amount: number; count: number };
+    netCashFlow: number;
+    bonuses: { amount: number; count: number };
+  };
+  period: { deposits: { amount: number }; withdrawals: { amount: number }; netCashFlow: number };
+  pending: { deposits: { amount: number; count: number }; withdrawals: { amount: number; count: number } };
+  playerBalances: { available: number; reserved: number };
+  series: SeriesPoint[];
+}
+
+interface LedgerRow {
+  id: string;
+  username: string;
+  type: string;
+  amount: number;
+  createdAt: string;
+}
+
+async function fetchJson<T>(path: string, accessToken: string): Promise<T | null> {
+  try {
+    const res = await backendFetch(path, { accessToken });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { data?: T };
+    return body.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const RANGES = [
+  { days: 1, label: "Today" },
+  { days: 7, label: "7 Days" },
+  { days: 30, label: "30 Days" },
+  { days: 90, label: "90 Days" },
+] as const;
+
+const LEDGER_LABEL: Record<string, string> = {
+  DEPOSIT_CREDIT: "Deposit",
+  WITHDRAWAL_RESERVE: "Withdrawal hold",
+  WITHDRAWAL_RELEASE: "Hold released",
+  WITHDRAWAL_DEBIT: "Withdrawal paid",
+  ADJUSTMENT_CREDIT: "Adjustment +",
+  ADJUSTMENT_DEBIT: "Adjustment −",
+  BONUS_CREDIT: "Bonus",
+};
+const isOutflow = (type: string) =>
+  type === "WITHDRAWAL_RESERVE" || type === "WITHDRAWAL_DEBIT" || type === "ADJUSTMENT_DEBIT";
+
 async function fetchReadinessDb(): Promise<boolean> {
   // Reusing /promotions as an app-layer DB round-trip (same probe Railway uses).
   try {
@@ -39,30 +92,43 @@ async function fetchReadinessDb(): Promise<boolean> {
 }
 
 const QUICK_ACTIONS: Array<{ label: string; icon: IconName; href: string; tint: string }> = [
-  { label: "Add User",       icon: "User",       href: "/signup",             tint: "text-tcl-gold" },
+  { label: "Users",          icon: "User",       href: "/admin/users",        tint: "text-tcl-gold" },
   { label: "Add Admin",      icon: "Crown",      href: "/admin/admins",       tint: "text-tcl-gold" },
   { label: "Add Promotion",  icon: "Gift",       href: "/admin/promotions",   tint: "text-tcl-red-bright" },
   { label: "Manage Games",   icon: "Gamepad2",   href: "/admin/games",        tint: "text-tcl-gold" },
-  { label: "Set Odds",       icon: "Target",     href: "/admin/sports",       tint: "text-tcl-gold" },
-  { label: "Upload Match",   icon: "Calendar",   href: "/admin/sports",       tint: "text-tcl-gold" },
+  { label: "Sports",         icon: "Target",     href: "/admin/sports",       tint: "text-tcl-gold" },
+  { label: "Transactions",   icon: "History",    href: "/admin/transactions", tint: "text-tcl-gold" },
   { label: "View Reports",   icon: "TrendingUp", href: "/admin/reports",      tint: "text-tcl-gold" },
   { label: "System Settings",icon: "Settings",   href: "/admin/settings",     tint: "text-tcl-muted" },
 ];
 
-export default async function AdminOverviewPage() {
+export default async function AdminOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string }>;
+}) {
   const user = (await getSession())!; // layout guarantees non-null admin
   const cookieStore = await cookies();
   const at = readAccessToken(cookieStore);
-  const [stats, dbUp] = await Promise.all([
+  const requested = Number((await searchParams).days);
+  const days = RANGES.some((r) => r.days === requested) ? requested : 7;
+  // Money figures need transactions.view; the backend enforces it as well.
+  const canSeeMoney = (user.permissions ?? []).includes("transactions.view");
+  const [stats, dbUp, finance, recent] = await Promise.all([
     at ? fetchStats(at) : Promise.resolve(null),
     fetchReadinessDb(),
+    at && canSeeMoney
+      ? fetchJson<FinanceOverview>(`/admin/finance/overview?days=${days}`, at)
+      : Promise.resolve(null),
+    at && canSeeMoney
+      ? fetchJson<{ data: LedgerRow[] }>("/admin/finance/ledger?page=1&limit=6", at)
+      : Promise.resolve(null),
   ]);
 
   const firstName = user.firstName || user.username;
 
-  // Real metrics (from the DB) vs placeholder metrics (mock: no backend
-  // support yet). The user's strict rule is "Never invent financial
-  // figures" — we show a dash and a visible "pending" marker for those.
+  // Every figure is read from the database. When a source is unavailable the
+  // card shows a dash and a "Pending" marker: never an invented number.
   const stat = (
     label: string,
     icon: IconName,
@@ -73,9 +139,29 @@ export default async function AdminOverviewPage() {
   const STAT_CARDS = [
     stat("Total Users",       "User",       stats?.totalUsers.toLocaleString()       ?? "—", null, stats ? "live" : "pending"),
     stat("Active Users",      "Users",      stats?.activeUsers.toLocaleString()      ?? "—", null, stats ? "live" : "pending"),
-    stat("Total Deposits",    "Wallet",     "—",                                          "No wallet backend yet", "pending"),
-    stat("Total Withdrawals", "ArrowRight", "—",                                          "No wallet backend yet", "pending"),
-    stat("Net Profit",        "TrendingUp", "—",                                          "No financial backend yet", "pending"),
+    stat(
+      "Total Deposits",
+      "Wallet",
+      finance ? formatBdt(finance.allTime.deposits.amount) : "—",
+      finance ? `${finance.allTime.deposits.count} approved · ${finance.pending.deposits.count} pending` : null,
+      finance ? "live" : "pending",
+    ),
+    stat(
+      "Total Withdrawals",
+      "ArrowRight",
+      finance ? formatBdt(finance.allTime.withdrawals.amount) : "—",
+      finance ? `${finance.allTime.withdrawals.count} paid · ${finance.pending.withdrawals.count} open` : null,
+      finance ? "live" : "pending",
+    ),
+    stat(
+      "Net Cash Flow",
+      "TrendingUp",
+      finance ? formatBdt(finance.allTime.netCashFlow) : "—",
+      finance
+        ? `Wallet balances (players + agents) ${formatBdt(finance.playerBalances.available + finance.playerBalances.reserved)}`
+        : null,
+      finance ? "live" : "pending",
+    ),
     stat("Live Users",        "Zap",        (stats?.connectedClients ?? 0).toString(),    "Live WebSocket clients", stats ? "live" : "pending"),
   ];
 
@@ -91,7 +177,7 @@ export default async function AdminOverviewPage() {
             </h2>
           </div>
           <p className="text-caption text-tcl-muted">
-            Here&apos;s what&apos;s happening on TCL11 today.
+            Here&apos;s what&apos;s happening on BetBoos365 today.
           </p>
         </div>
       </section>
@@ -124,41 +210,43 @@ export default async function AdminOverviewPage() {
 
       {/* Revenue + Quick Actions + System Status */}
       <section className="grid gap-4 lg:grid-cols-12">
-        {/* Revenue Overview — placeholder because we have no financial series */}
+        {/* Revenue Overview — approved deposits vs paid withdrawals, per day */}
         <NeonCard className="space-y-3 p-4 lg:col-span-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-display text-heading-md uppercase text-tcl-white">
-              Revenue Overview
-              <span className="ml-2 align-middle text-[10px] font-normal uppercase tracking-wider text-tcl-muted">
-                Preview
-              </span>
-            </h3>
-            <div className="flex overflow-hidden rounded-pill border border-tcl-border-muted text-[11px]">
-              {["Today", "7 Days", "30 Days", "Custom"].map((t, i) => (
-                <button
-                  key={t}
-                  type="button"
-                  className={cn("px-3 py-1.5 font-semibold", i === 1 ? "bg-tcl-red/30 text-tcl-red-bright" : "text-tcl-muted hover:text-tcl-white")}
-                  disabled
-                  title="Revenue analytics — connect financial backend first"
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <h3 className="font-display text-heading-md uppercase text-tcl-white">Revenue Overview</h3>
+            {finance ? (
+              <nav aria-label="Period" className="flex overflow-hidden rounded-pill border border-tcl-border-muted text-[11px]">
+                {RANGES.map((r) => (
+                  <Link
+                    key={r.days}
+                    href={`/admin?days=${r.days}`}
+                    scroll={false}
+                    aria-current={r.days === days ? "page" : undefined}
+                    className={cn(
+                      "px-3 py-1.5 font-semibold",
+                      r.days === days ? "bg-tcl-red/30 text-tcl-red-bright" : "text-tcl-muted hover:text-tcl-white",
+                    )}
+                  >
+                    {r.label}
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
           </div>
-          <div className="relative h-64 overflow-hidden rounded-md border border-dashed border-tcl-border-muted bg-tcl-surface-2/50">
-            <div className="absolute inset-0 flex items-center justify-center text-center">
-              <div className="px-6">
-                <ICONS.TrendingUp aria-hidden="true" className="mx-auto mb-2 size-7 text-tcl-muted" />
-                <p className="text-sm text-tcl-white">No revenue data yet</p>
-                <p className="mt-1 text-[11px] text-tcl-muted">
-                  Deposit / withdrawal / profit series will render here once a
-                  financial backend is wired. Never invented in the meantime.
-                </p>
+          {finance ? (
+            <>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <MiniStat label="Deposits" value={formatBdt(finance.period.deposits.amount)} tone="text-tcl-gold" />
+                <MiniStat label="Withdrawals" value={formatBdt(finance.period.withdrawals.amount)} tone="text-tcl-red-bright" />
+                <MiniStat label="Net" value={formatBdt(finance.period.netCashFlow)} tone="text-tcl-white" />
               </div>
+              <RevenueChart series={finance.series} />
+            </>
+          ) : (
+            <div className="flex h-64 items-center justify-center rounded-md border border-dashed border-tcl-border-muted bg-tcl-surface-2/50 px-6 text-center text-[12px] text-tcl-muted">
+              {canSeeMoney ? "Finance data is unavailable right now." : "Financial figures need the transactions.view permission."}
             </div>
-          </div>
+          )}
         </NeonCard>
 
         {/* Quick Actions */}
@@ -186,7 +274,7 @@ export default async function AdminOverviewPage() {
           <h3 className="font-display text-heading-md uppercase text-tcl-white">System Status</h3>
           <ul className="space-y-2 text-sm">
             <StatusRow label="API Server"     ok={!!stats} okLabel="Online" offLabel="Unreachable" />
-            <StatusRow label="Database"       ok={dbUp}    okLabel="Online" offLabel="Unreachable" note="PostgreSQL" />
+            <StatusRow label="Database"       ok={dbUp}    okLabel="Online" offLabel="Unreachable" note="MySQL" />
             <StatusRow label="Game Providers" ok={true}    okLabel="Online" offLabel="Offline" note="Static catalog" />
             <StatusRow label="Payment Gateway" ok={null}   okLabel="Not configured" offLabel="Offline" pending />
             <StatusRow label="Cron Jobs"       ok={null}   okLabel="Not configured" offLabel="Stopped" pending />
@@ -202,18 +290,39 @@ export default async function AdminOverviewPage() {
         <NeonCard className="space-y-3 p-4 lg:col-span-5">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-heading-md uppercase text-tcl-white">Recent Transactions</h3>
-            <span className="rounded-pill bg-tcl-muted/10 px-2 py-0.5 text-[10px] font-bold uppercase text-tcl-muted">
-              Pending backend
-            </span>
+            {recent ? (
+              <Link href="/admin/transactions" className="text-[11px] font-semibold text-tcl-gold hover:underline">
+                View all
+              </Link>
+            ) : null}
           </div>
-          <p className="text-[12px] text-tcl-muted">
-            No transactions endpoint yet. Deposit/withdrawal records show here
-            once a wallet backend is implemented — never invented.
-          </p>
-          <div className="rounded-md border border-dashed border-tcl-border-muted bg-tcl-surface-2/50 p-6 text-center text-[12px] text-tcl-muted">
-            <ICONS.History aria-hidden="true" className="mx-auto mb-2 size-6" />
-            Waiting for <code className="text-tcl-white">GET /admin/transactions</code>.
-          </div>
+          {!recent ? (
+            <p className="rounded-md border border-dashed border-tcl-border-muted bg-tcl-surface-2/50 p-6 text-center text-[12px] text-tcl-muted">
+              {canSeeMoney ? "Ledger unavailable right now." : "Needs the transactions.view permission."}
+            </p>
+          ) : recent.data.length === 0 ? (
+            <p className="rounded-md border border-dashed border-tcl-border-muted bg-tcl-surface-2/50 p-6 text-center text-[12px] text-tcl-muted">
+              No wallet movements yet.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {recent.data.map((t) => (
+                <li key={t.id} className="flex items-center gap-3 rounded-md border border-tcl-border-muted bg-tcl-surface-2/50 p-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-tcl-white">{t.username}</p>
+                    <p className="text-[10px] uppercase text-tcl-muted">
+                      {LEDGER_LABEL[t.type] ?? t.type} ·{" "}
+                      <span suppressHydrationWarning>{new Date(t.createdAt).toLocaleString()}</span>
+                    </p>
+                  </div>
+                  <span className={cn("tabular-nums text-sm font-semibold", isOutflow(t.type) ? "text-tcl-red-bright" : "text-tcl-gold")}>
+                    {isOutflow(t.type) ? "−" : "+"}
+                    {formatBdt(t.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </NeonCard>
 
         <NeonCard className="space-y-3 p-4 lg:col-span-4">
@@ -237,6 +346,15 @@ export default async function AdminOverviewPage() {
           <LatestAuditFeed />
         </NeonCard>
       </section>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div className="rounded-md border border-tcl-border-muted bg-tcl-surface-2/50 px-2 py-2">
+      <p className="text-[10px] uppercase tracking-wide text-tcl-muted">{label}</p>
+      <p className={cn("truncate font-display text-lg tabular-nums", tone)}>{value}</p>
     </div>
   );
 }

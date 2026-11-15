@@ -1,8 +1,8 @@
-# TCL11 Database Architecture
+# BetBoos365 Database Architecture
 
 ## Overview
 
-TCL11 uses **PostgreSQL** as its primary database with **Prisma ORM 6.9** for type-safe database access. All data that was previously stored in in-memory Maps is now persisted in PostgreSQL through Prisma.
+BetBoos365 uses **PostgreSQL** as its primary database with **Prisma ORM 6.9** for type-safe database access. All data that was previously stored in in-memory Maps is now persisted in PostgreSQL through Prisma.
 
 ## Technology Stack
 
@@ -197,7 +197,7 @@ The seed script (`prisma/seed.ts`) creates:
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/tcl11?schema=public` | PostgreSQL connection string |
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/betboos365?schema=public` | PostgreSQL connection string |
 
 The `DATABASE_URL` follows the format:
 ```

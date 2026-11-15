@@ -58,7 +58,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4 box-border"
       aria-modal="true"
       role="dialog"
       aria-labelledby="modal-title"
@@ -76,8 +76,7 @@ export function Modal({
         ref={dialogRef}
         tabIndex={-1}
         className={cn(
-          "relative z-10 w-full outline-none",
-          "sm:w-auto",
+          "relative z-10 w-full max-w-full outline-none box-border",
           SIZE_CLASS[size],
         )}
       >
@@ -86,19 +85,20 @@ export function Modal({
             "neon-border-red glow-red-soft bg-gradient-to-b from-tcl-surface-1 to-tcl-black",
             "rounded-t-2xl sm:rounded-card",
             "overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.25)]",
+            "max-h-[90dvh] sm:max-h-[85vh] flex flex-col box-border",
             "animate-fade-in-up",
           )}
         >
-          <header className="flex items-start gap-3 border-b border-tcl-red/30 bg-tcl-black/60 px-5 py-4">
+          <header className="flex items-start gap-3 border-b border-tcl-red/30 bg-tcl-black/60 px-4 sm:px-5 py-4 shrink-0">
             <div className="flex-1 min-w-0">
               <h2
                 id="modal-title"
-                className="font-display text-heading-md uppercase text-tcl-white tracking-wide"
+                className="font-display text-heading-md uppercase text-tcl-white tracking-wide truncate"
               >
                 {title}
               </h2>
               {subtitle ? (
-                <p className="mt-0.5 text-caption text-tcl-muted">{subtitle}</p>
+                <p className="mt-0.5 text-caption text-tcl-muted break-words">{subtitle}</p>
               ) : null}
             </div>
             <button
@@ -110,9 +110,9 @@ export function Modal({
               <ICONS.X aria-hidden="true" className="size-5" />
             </button>
           </header>
-          <div className="px-5 py-5">{children}</div>
+          <div className="px-4 sm:px-5 py-5 overflow-y-auto flex-1 min-h-0 box-border">{children}</div>
           {footer ? (
-            <footer className="border-t border-tcl-border-muted bg-tcl-black/40 px-5 py-4">
+            <footer className="border-t border-tcl-border-muted bg-tcl-black/40 px-4 sm:px-5 py-4 shrink-0 box-border">
               {footer}
             </footer>
           ) : null}

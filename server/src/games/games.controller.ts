@@ -1,10 +1,10 @@
 import { Controller, Get, Param, Query, Post, Patch, Body, UseGuards } from '@nestjs/common';
 import { GamesService } from './games.service';
 import { GameQueryDto, UpdateGameDto } from './dto';
-import { Public, CurrentUser, Roles } from '../common/decorators';
+import { Public, CurrentUser, Roles, RequirePermissions } from '../common/decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { Role } from '../common/interfaces';
+import { Permission, Role } from '../common/interfaces';
 
 @Controller('games')
 export class GamesController {
@@ -37,6 +37,7 @@ export class GamesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @RequirePermissions(Permission.CONTENT_MANAGE)
   update(@Param('id') id: string, @Body() dto: UpdateGameDto) {
     return this.gamesService.update(id, dto);
   }

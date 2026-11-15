@@ -21,6 +21,8 @@ export interface DepositView {
   amount: number;
   currency: string;
   agentNumber: string;
+  /** Number the money was sent from, as the player entered it (any mobile number). */
+  senderPhone: string | null;
   transactionReference: string;
   status: string;
   adminNote: string | null;
@@ -65,6 +67,7 @@ export function depositView(d: DepositRequest & { provider?: PaymentProvider | n
     amount: Number(d.amount),
     currency: d.currency,
     agentNumber: d.agentNumber,
+    senderPhone: d.senderPhone ?? null,
     transactionReference: d.transactionReference,
     status: d.status,
     adminNote: d.adminNote,

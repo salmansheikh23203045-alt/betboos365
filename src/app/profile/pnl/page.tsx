@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { ProfitLossClient } from "./ProfitLossClient";
 
-export const metadata = { title: "লাভ ও ক্ষতি — TCL11" };
+export const metadata = { title: "লাভ ও ক্ষতি — BetBoos365" };
 
 export default async function ProfitLossPage() {
   const user = await getSession();

@@ -15,8 +15,6 @@ export interface SidebarNavItem {
 
 export const USER_CENTER_NAV: SidebarNavItem[] = [
   { label: BN.userCenter.myAccount, href: "/profile", icon: "User" },
-  { label: BN.userCenter.deposit, href: "/profile/deposit", icon: "ArrowDownCircle" },
-  { label: BN.userCenter.withdraw, href: "/profile/withdraw", icon: "ArrowUpCircle" },
   { label: BN.userCenter.bettingRecord, href: "/profile/betting", icon: "History" },
   { label: BN.userCenter.accountRecord, href: "/profile/records", icon: "BookOpen" },
   { label: BN.userCenter.profitLoss, href: "/profile/pnl", icon: "TrendingUp" },

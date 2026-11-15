@@ -1,4 +1,4 @@
-# TCL11 API Endpoints
+# BetBoos365 API Endpoints
 
 **Base URL:** `http://localhost:3200/api/v1`
 **Auth:** Bearer token in `Authorization` header unless marked PUBLIC.
@@ -41,7 +41,7 @@
   "user": {
     "id": "uuid",
     "username": "demo",
-    "email": "demo@tcl11.com | null",
+    "email": "demo@betboos365.com | null",
     "firstName": "...",
     "lastName": "...",
     "roles": ["user"]
