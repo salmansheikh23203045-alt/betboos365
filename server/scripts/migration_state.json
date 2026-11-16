@@ -1,0 +1,13 @@
+{
+  "gameProvider": "cbea3d49-b70c-48b8-a44b-124aa099e1d3",
+  "sport": "fde2a405-bb2f-4499-b9d9-bc99a59f027a",
+  "paymentProvider": "f86a96a4-13fd-4a2f-9de6-06705a9b5857",
+  "game": "f87ee74d-c17f-464c-a036-893140c6735d",
+  "league": "6968402f-87f1-4457-86c8-46a25ecdf92a",
+  "team": "fd605e30-f4a0-48fd-bb16-7e6ca66392ec",
+  "user": "fc79c406-203b-4a1c-bf0b-38461d6b6c1c",
+  "userProfile": "f83b36fe-9d66-404c-a07e-0c71e9df0e48",
+  "wallet": "e78fa9e6-c566-4a08-a417-c2429de06a9b",
+  "promotion": "f4fbdd46-42c9-4c47-9ec3-61237760d598",
+  "sportMatch": "d20783e0-e882-4233-ace0-ef6cfcabe634"
+}

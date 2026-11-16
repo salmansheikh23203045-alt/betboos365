@@ -23,6 +23,10 @@
  */
 import { AuditAction, Prisma, PrismaClient, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { randomInt } from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 type Spec = {
   username: string;
@@ -85,8 +89,21 @@ function rolesOf(value: unknown): string[] {
   return [];
 }
 
+// --generate: for accounts whose password variable is unset, use a random
+// temporary password and record it (only for accounts actually created) in a
+// private file outside the web and app roots. Nothing is printed.
+const GENERATE = process.argv.includes('--generate');
+const generated: { username: string; role: string; password: string }[] = [];
+
+function tempPassword(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  return Array.from({ length: 16 }, () => alphabet[randomInt(alphabet.length)]).join('');
+}
+
 async function ensure(spec: Spec): Promise<'created' | 'exists' | 'skipped'> {
-  const password = process.env[spec.passwordEnv];
+  let password = process.env[spec.passwordEnv];
+  const isGenerated = !password && GENERATE;
+  if (isGenerated) password = tempPassword();
   if (!password) {
     console.log(`  ${spec.username}: ${spec.passwordEnv} not set, skipped`);
     return 'skipped';
@@ -140,8 +157,26 @@ async function ensure(spec: Spec): Promise<'created' | 'exists' | 'skipped'> {
     }
     throw err;
   }
+  if (isGenerated) generated.push({ username: spec.username, role: spec.role, password });
   console.log(`  ${spec.username}: created as ${spec.role}, password change required at first login`);
   return 'created';
+}
+
+function writeGeneratedLogins() {
+  if (generated.length === 0) return;
+  const file = path.join(os.homedir(), 'bb365-initial-logins.txt');
+  const body = [
+    'BetBoos365 initial staff logins (temporary passwords).',
+    'Each account must set a new password at first login, which disables these.',
+    'Delete this file after signing in to every account.',
+    '',
+    ...generated.map((g) => `${g.role.padEnd(12)} username: ${g.username.padEnd(10)} temporary password: ${g.password}`),
+    '',
+  ].join('\n');
+  // Append, so a later run never overwrites logins that were not used yet.
+  fs.appendFileSync(file, body, { mode: 0o600 });
+  fs.chmodSync(file, 0o600);
+  console.log(`[staff:bootstrap] Temporary passwords for ${generated.length} new account(s) written to ${file} (mode 600). Not shown here.`);
 }
 
 async function main() {
@@ -150,6 +185,7 @@ async function main() {
   for (const spec of SPECS) {
     if ((await ensure(spec)) === 'created') created++;
   }
+  writeGeneratedLogins();
   console.log(`[staff:bootstrap] Done. ${created} account(s) created.`);
   if (created > 0) {
     console.log('[staff:bootstrap] Sign in to each new account now and set a strong password.');

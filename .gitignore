@@ -1,44 +1,67 @@
-# dependencies
+
+# Dependencies
 node_modules/
 /.pnp
 .pnp.js
 
-# testing
+# Testing
 /coverage
+/test-results/
+/playwright-report/
 
-# next.js
+# Next.js
 /.next/
 /out/
-
-# production
 /build
 
-# misc
-.DS_Store
+# Vercel
+.vercel/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.example.*
+
+# Production secrets and credentials
+.bb365-secrets.json
+/.secrets/
+*credentials*
+*initial-logins*
+*.key
 *.pem
 
-# debug
+# Database backups
+/backups/
+*.sql
+*.sql.gz
+*.dump
+
+# cPanel deployment bundles
+/dist-cpanel/
+/dist-cpanel.tar.gz
+
+# Logs and debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
-# local env files
-.env*.local
-.env
-
-# vercel
-.vercel
-
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# Miscellaneous
+.DS_Store
+*.local
 
-# playwright artifacts
-/test-results/
-/playwright-report/
+# Playwright screenshots
 /docs/screenshots/
 
-# Database backups contain user data and password hashes — never commit.
-/backups/
+# Editor settings
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
