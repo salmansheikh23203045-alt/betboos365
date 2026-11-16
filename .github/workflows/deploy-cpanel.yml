@@ -76,7 +76,7 @@ jobs:
             -p "$SSH_PORT" \
             "$SSH_USER@$SSH_HOST" \
             "APP_ROOT='$APP_ROOT' bash -s" <<'REMOTE'
-          set -euo pipefail
+          set -eo pipefail
 
           cd "$APP_ROOT"
 
