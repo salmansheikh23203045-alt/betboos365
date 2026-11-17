@@ -96,7 +96,7 @@ export function DepositModal({
   async function copyAgentNumber() {
     if (!config) return;
     try {
-      await navigator.clipboard.writeText(config.agentNumber);
+      await navigator.clipboard.writeText(config.depositNumber ?? config.agentNumber);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -115,6 +115,10 @@ export function DepositModal({
       {loadingMeta || !config || !providers ? (
         <div className="flex items-center justify-center py-10 text-tcl-muted">
           <ICONS.Loader2 aria-hidden="true" className="size-6 animate-spin" />
+        </div>
+      ) : !config.depositNumber ? (
+        <div role="alert" className="rounded-lg border border-tcl-red/40 bg-tcl-red/10 p-6 text-center text-tcl-red-bright font-semibold">
+          Deposit number unavailable. Please contact support.
         </div>
       ) : step === "method" ? (
         <MethodStep
@@ -149,7 +153,7 @@ export function DepositModal({
           paymentType={paymentType!}
           amount={amountNumber}
           currency={config.currency}
-          agentNumber={config.agentNumber}
+          agentNumber={config.depositNumber ?? config.agentNumber}
           txRef={txRef}
           onTxRefChange={setTxRef}
           senderPhone={senderPhone}
@@ -162,7 +166,7 @@ export function DepositModal({
           error={error}
         />
       ) : (
-        <SubmittedStep onClose={onClose} agentNumber={config.agentNumber} />
+        <SubmittedStep onClose={onClose} agentNumber={config.depositNumber ?? config.agentNumber} />
       )}
     </Modal>
   );

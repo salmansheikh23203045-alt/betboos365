@@ -28,6 +28,7 @@ const NAV: NavEntry[] = [
   { label: "Sub Admin Management", href: "/admin/sub-admins", icon: "ShieldCheck", permission: "sub_admins.manage" },
   { label: BN.admin.rolesPermissions, href: "/admin/roles", icon: "Shield", permission: "admins.manage" },
   { label: "Deposit Management", href: "/admin/deposits", icon: "ArrowDownCircle", permission: "deposits.view" },
+  { label: "Deposit Number Management", href: "/admin/deposit-numbers", icon: "Phone", permission: "deposits.view" },
   { label: "Withdrawal Management", href: "/admin/withdrawals", icon: "ArrowUpCircle", permission: "withdrawals.view" },
   { label: BN.admin.transactions, href: "/admin/transactions", icon: "History", permission: "transactions.view" },
   { label: "Telegram Bonuses", href: "/admin/bonuses", icon: "Gift", permission: "transactions.view" },

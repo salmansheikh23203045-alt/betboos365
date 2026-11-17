@@ -22,6 +22,8 @@ export interface WalletView {
 export interface WalletConfig {
   currency: string;
   agentNumber: string;
+  depositNumber: string;
+  agentSendMoneyCashoutNumber: string;
   deposit: { min: number; max: number };
   withdrawal: { min: number; max: number };
 }

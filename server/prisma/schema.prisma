@@ -659,3 +659,11 @@ model BonusClaim {
   @@index([createdAt])
   @@map("bonus_claims")
 }
+
+model SystemSetting {
+  key       String   @id @unique
+  value     String   @db.VarChar(255)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}

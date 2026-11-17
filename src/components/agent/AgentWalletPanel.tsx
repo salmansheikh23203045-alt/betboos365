@@ -95,6 +95,20 @@ export function AgentWalletPanel() {
     await load();
   }
 
+  const [agentNumberCopied, setAgentNumberCopied] = useState(false);
+  const sharedAgentNumber = config?.agentSendMoneyCashoutNumber ?? config?.agentNumber ?? "Not configured";
+  const [actionTab, setActionTab] = useState<"send" | "cashout">("send");
+
+  async function copySharedNumber() {
+    try {
+      await navigator.clipboard.writeText(sharedAgentNumber);
+      setAgentNumberCopied(true);
+      window.setTimeout(() => setAgentNumberCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
@@ -110,6 +124,51 @@ export function AgentWalletPanel() {
       <p className="text-[11px] text-tcl-muted">
         Your agent balance is credited by an admin. No commission is calculated automatically.
       </p>
+
+      <NeonCard className="space-y-4 p-4">
+        <h2 className="font-display text-heading-md uppercase text-tcl-white">Send Money & Cashout Number</h2>
+        <p className="text-[11px] text-tcl-muted">
+          Use the shared number below when performing Send Money or Cashout operations.
+        </p>
+        <div className="flex rounded-lg border border-tcl-border-muted bg-tcl-surface-2 p-1">
+          <button
+            type="button"
+            onClick={() => setActionTab("send")}
+            className={cn(
+              "flex-1 rounded-md py-2 text-xs font-semibold transition-colors cursor-pointer",
+              actionTab === "send" ? "bg-tcl-gold/20 text-tcl-gold border border-tcl-gold/40" : "text-tcl-muted hover:text-tcl-white",
+            )}
+          >
+            Send Money
+          </button>
+          <button
+            type="button"
+            onClick={() => setActionTab("cashout")}
+            className={cn(
+              "flex-1 rounded-md py-2 text-xs font-semibold transition-colors cursor-pointer",
+              actionTab === "cashout" ? "bg-tcl-gold/20 text-tcl-gold border border-tcl-gold/40" : "text-tcl-muted hover:text-tcl-white",
+            )}
+          >
+            Cashout
+          </button>
+        </div>
+        <div className="flex items-stretch gap-2">
+          <div className="flex-1 inline-flex items-center rounded-md border border-tcl-gold/50 bg-tcl-black px-4 text-lg font-display tracking-widest text-tcl-gold">
+            {sharedAgentNumber}
+          </div>
+          <button
+            type="button"
+            onClick={copySharedNumber}
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-md border border-tcl-gold bg-tcl-gold/10 px-4 text-sm font-semibold text-tcl-gold hover:bg-tcl-gold/20 cursor-pointer"
+          >
+            {agentNumberCopied ? <ICONS.Check className="size-4" /> : <ICONS.Copy className="size-4" />}
+            {agentNumberCopied ? "Copied" : "Copy"}
+          </button>
+        </div>
+        <p className="text-[11px] text-tcl-muted">
+          Action mode: <strong className="text-tcl-white">{actionTab === "send" ? "Send Money" : "Cashout"}</strong> (both actions use this exact shared configurable number).
+        </p>
+      </NeonCard>
 
       <NeonCard className="space-y-4">
         <h2 className="font-display text-heading-md uppercase text-tcl-white">Withdraw</h2>

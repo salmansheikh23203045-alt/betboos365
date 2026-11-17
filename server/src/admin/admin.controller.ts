@@ -3,6 +3,7 @@ import {
   Get,
   Patch,
   Post,
+  Put,
   Param,
   Body,
   UseGuards,
@@ -11,7 +12,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { UpdateUserRoleDto, PhoneVerificationDto } from './dto';
+import { UpdateUserRoleDto, PhoneVerificationDto, UpdateDepositNumbersDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, CurrentUser, RequirePermissions } from '../common/decorators';
@@ -35,6 +36,26 @@ export class AdminController {
   @RequirePermissions(Permission.DASHBOARD_VIEW)
   getDashboardStats() {
     return this.adminService.getDashboardStats();
+  }
+
+  @Get('deposit-numbers')
+  @RequirePermissions(Permission.DEPOSITS_VIEW)
+  getDepositNumbers() {
+    return this.adminService.getDepositNumbers();
+  }
+
+  @Put('deposit-numbers')
+  @RequirePermissions(Permission.SETTINGS_MANAGE)
+  async updateDepositNumbers(
+    @CurrentUser('id') actorId: string,
+    @Body() dto: UpdateDepositNumbersDto,
+  ) {
+    const updated = await this.adminService.updateDepositNumbers(actorId, dto);
+    await this.auditService.log(AuditAction.SETTINGS_CHANGE, actorId, {
+      action: 'deposit_numbers_updated',
+      ...updated,
+    });
+    return updated;
   }
 
   @Patch('users/:id/roles')

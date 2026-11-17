@@ -64,9 +64,19 @@ export class WalletController {
   @Public()
   @Get('config')
   async config() {
+    const [depSetting, agentSetting] = await Promise.all([
+      this.prisma.systemSetting.findUnique({ where: { key: 'DEPOSIT_NUMBER' } }),
+      this.prisma.systemSetting.findUnique({ where: { key: 'AGENT_SEND_MONEY_CASHOUT_NUMBER' } }),
+    ]);
+    const defaultNumber = process.env.DEPOSIT_AGENT_NUMBER ?? '01956869852';
+    const depositNumber = depSetting?.value ?? defaultNumber;
+    const agentSendMoneyCashoutNumber = agentSetting?.value ?? defaultNumber;
+
     return {
       currency: WALLET_CONFIG.currency,
-      agentNumber: WALLET_CONFIG.agentNumber,
+      agentNumber: depositNumber,
+      depositNumber,
+      agentSendMoneyCashoutNumber,
       deposit: WALLET_CONFIG.deposit,
       withdrawal: WALLET_CONFIG.withdrawal,
     };

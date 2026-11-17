@@ -78,7 +78,7 @@ export function DepositFlow({
   async function copyAgentNumber() {
     if (!config) return;
     try {
-      await navigator.clipboard.writeText(config.agentNumber);
+      await navigator.clipboard.writeText(config.depositNumber ?? config.agentNumber);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -90,6 +90,16 @@ export function DepositFlow({
     return (
       <div className="flex h-full items-center justify-center text-tcl-muted">
         <ICONS.Loader2 aria-hidden="true" className="size-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!config.depositNumber) {
+    return (
+      <div className="flex h-full items-center justify-center p-6 text-center">
+        <div role="alert" className="rounded-lg border border-tcl-red/40 bg-tcl-red/10 p-6 text-tcl-red-bright font-semibold">
+          Deposit number unavailable. Please contact support.
+        </div>
       </div>
     );
   }
@@ -130,7 +140,7 @@ export function DepositFlow({
             paymentType={paymentType!}
             amount={amountNumber}
             currency={config.currency}
-            agentNumber={config.agentNumber}
+            agentNumber={config.depositNumber ?? config.agentNumber}
             txRef={txRef}
             onTxRefChange={setTxRef}
             onCopy={copyAgentNumber}
@@ -141,7 +151,7 @@ export function DepositFlow({
             error={error}
           />
         ) : (
-          <SubmittedStep onClose={onClose} agentNumber={config.agentNumber} />
+          <SubmittedStep onClose={onClose} agentNumber={config.depositNumber ?? config.agentNumber} />
         )}
       </div>
     </div>
