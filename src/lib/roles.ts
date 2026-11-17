@@ -53,6 +53,7 @@ export function roleLabel(roles: Roles): string {
 /** Sections of the Admin Dashboard a Sub Admin can open, by permission. */
 export const SUB_ADMIN_SECTIONS: { href: string; permission: string }[] = [
   { href: "/admin/deposits", permission: "deposits.view" },
+  { href: "/admin/deposit-numbers", permission: "deposits.view" },
   { href: "/admin/withdrawals", permission: "withdrawals.view" },
   { href: "/admin/transactions", permission: "transactions.view" },
   { href: "/admin/bonuses", permission: "transactions.view" },
