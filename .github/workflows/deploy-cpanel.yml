@@ -1,0 +1,113 @@
+
+name: BetBoos365 - cPanel Deployment
+
+on:
+  push:
+    branches:
+      - release/production-readiness
+  workflow_dispatch:
+
+concurrency:
+  group: betboos365-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build cPanel production bundle
+        run: npm run build:cpanel
+
+      - name: Verify deployment bundle
+        run: |
+          test -s dist-cpanel.tar.gz
+          tar -tzf dist-cpanel.tar.gz >/dev/null
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          SSH_HOST: ${{ secrets.CPANEL_HOST }}
+          SSH_PORT: ${{ secrets.CPANEL_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload deployment bundle
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_HOST }}
+          SSH_USER: ${{ secrets.CPANEL_USER }}
+          SSH_PORT: ${{ secrets.CPANEL_PORT }}
+          APP_ROOT: ${{ secrets.CPANEL_APP_ROOT }}
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -P "$SSH_PORT" \
+            dist-cpanel.tar.gz \
+            "$SSH_USER@$SSH_HOST:$APP_ROOT/dist-cpanel.tar.gz"
+
+      - name: Deploy on cPanel
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_HOST }}
+          SSH_USER: ${{ secrets.CPANEL_USER }}
+          SSH_PORT: ${{ secrets.CPANEL_PORT }}
+          APP_ROOT: ${{ secrets.CPANEL_APP_ROOT }}
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$SSH_HOST" \
+            "APP_ROOT='$APP_ROOT' bash -s" <<'REMOTE'
+          set -eo pipefail
+
+          cd "$APP_ROOT"
+
+          # Extract new production bundle
+          tar -xzf dist-cpanel.tar.gz -C "$APP_ROOT"
+
+          # Activate cPanel Node.js environment
+          source /home/betboosc/nodevenv/bb365app/22/bin/activate
+
+          # Install/update production dependencies
+          npm install --omit=dev --no-audit --no-fund
+
+          # Restart Passenger application
+          mkdir -p tmp
+          touch tmp/restart.txt
+
+          # Remove uploaded archive after successful deployment
+          rm -f dist-cpanel.tar.gz
+
+          echo "BetBoos365 deployment completed."
+          REMOTE
+
+      - name: Health check
+        env:
+          APP_URL: ${{ secrets.CPANEL_APP_URL }}
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "$APP_URL/" \
+            -o /dev/null
+
+          echo "Website health check passed."
