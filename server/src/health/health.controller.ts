@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Headers } from '@nestjs/common';
 import { HealthService } from './health.service';
 import { Public } from '../common/decorators';
 
@@ -10,5 +10,11 @@ export class HealthController {
   @Get()
   async check() {
     return this.healthService.check();
+  }
+
+  @Public()
+  @Get('version')
+  async getVersion(@Headers('x-deployment-secret') secretHeader?: string): Promise<{ status: string; buildId: string }> {
+    return this.healthService.getVersion(secretHeader);
   }
 }
